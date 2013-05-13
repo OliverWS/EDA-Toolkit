@@ -234,6 +234,12 @@ Date.prototype.shortString = function() {
 };
 
 
+String.prototype.contains = function(substr) {
+
+	return (this.indexOf(substr) > -1);
+
+}
+
 String.prototype.isnum = function() {
 	try {
 		var f = parseFloat(this.toString());
@@ -244,6 +250,23 @@ String.prototype.isnum = function() {
 	}
 
 };
+
+String.prototype.isdate = function() {
+	try {
+		var d = new Date(this.toString());
+		if(d.valueOf() != NaN){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	catch (error) {
+		return false;
+	}
+
+};
+
 
 String.prototype.autoconvert = function() {
 {
@@ -268,6 +291,47 @@ String.prototype.autoconvert = function() {
 	}
 
 };
+
+guess = function(x) {
+	if (typeof(x) != "string") {
+		return typeof(x);
+	}
+	else if (x.isnum()) {
+		if(x.toString().contains(".") || x.toString().contains(",")) {
+			return "float";
+		}
+		else {
+			return "int";
+		}	
+	}
+	else if (x.isdate()) {
+		return "date";
+	}
+	else {
+		return "unknown";
+	}
+
+
+}
+
+autoformat = function(x) {
+	var format = guess(x);
+	switch (format) {
+		case "float":
+			return float(x);
+			break;
+		case "int":
+			return int(x);
+			break;
+		case "date":
+			return new Date(x);
+			break;
+		default:
+			return x;
+			break;
+		
+	}
+}
 
 
 
