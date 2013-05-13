@@ -296,6 +296,9 @@ guess = function(x) {
 	if (typeof(x) != "string") {
 		return typeof(x);
 	}
+	else if (x.isdate()) {
+		return "date";
+	}
 	else if (x.isnum()) {
 		if(x.toString().contains(".") || x.toString().contains(",")) {
 			return "float";
@@ -303,9 +306,6 @@ guess = function(x) {
 		else {
 			return "int";
 		}	
-	}
-	else if (x.isdate()) {
-		return "date";
 	}
 	else {
 		return "unknown";
