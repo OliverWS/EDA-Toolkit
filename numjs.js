@@ -113,6 +113,11 @@ Number.prototype.pad = function(padding) {
 	return s;
 };
 
+Number.prototype.isNaN = function() {
+
+	return isNaN(this);
+}
+
 Date.prototype.toQFormat = function() {
 	var output = "";
 	output += this.getFullYear() + "-" + (this.getMonth()+1) + "-" + this.getDate();
@@ -254,7 +259,7 @@ String.prototype.isnum = function() {
 String.prototype.isdate = function() {
 	try {
 		var d = new Date(this.toString());
-		if(d.valueOf() != NaN){
+		if(!d.valueOf().isNaN()){
 			return true;
 		}
 		else {
