@@ -1,5 +1,6 @@
 var SerialPort = function(port, opts) {
 	var that = this;
+	var opts = opts || {};
 	that.baudrate = opts.baudrate || 9600;
 	that.open_callback = opts.open_callback || function() {};
 	that.callback = opts.callback || function(line) {console.log(">>" + line);};
@@ -42,6 +43,8 @@ var SerialPort = function(port, opts) {
 		if (that.serial.available()) {
 		  message = that.serial.readLine();
 		  that.callback(message);
+		  that.buffer.push(str);
+		  
 		}
 	
 	}
