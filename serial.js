@@ -27,6 +27,11 @@ var SerialPort = function(port, opts) {
 	
 	}
 	
+	that.write = function(str) {
+		that.serial.write(str);
+	
+	}
+	
 	that.end = function() {
 		clearInterval(that.poll_lock);
 		that.serial.end();
@@ -34,8 +39,8 @@ var SerialPort = function(port, opts) {
 	}
 	
 	that.poll = function() {
-		if (serial.available()) {
-		  message = serial.readLine();
+		if (that.serial.available()) {
+		  message = that.serial.readLine();
 		  that.callback(message);
 		}
 	
