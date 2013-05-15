@@ -23,10 +23,10 @@ require = function(lib){
 	try{
 		var tag = document.createElement(lib.type);
 		tag.setAttribute("src", lib.src);
-		if(type == "link"){
+		if(lib.type == "link"){
 			tag.setAttribute("rel", "stylesheet");
 		}
-		else if (type == "script") {
+		else if (lib.type == "script") {
 			tag.setAttribute("type", "text/javascript");
 		}
 		document.head.appendChild(tag);
