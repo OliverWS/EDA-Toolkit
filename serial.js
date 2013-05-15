@@ -6,6 +6,7 @@ var SerialPort = function(port, opts) {
 	that.callback = opts.callback || function(line) {console.log(">>" + line);};
 	that.ser_id = "seriality_" + parseInt(Math.random()*1000).toString();
 	that.poll_frequency = opts.polling_frequency || 10;
+	that.port = port;
 	//First need to add this object tag
 	//<object type="application/Seriality" id="seriality" width="0" height="0"></object>
 	var obj = document.createElement("object");
@@ -17,15 +18,18 @@ var SerialPort = function(port, opts) {
 	that.serial = (document.getElementById(that.ser_id)).Seriality();
 	that.open = false;
 	that.buffer = new Array();
-	
+	that.retries = 10;
+
+
 	that.begin = function(port) {
-		that.openPort(port,25);
-		if(!that.open){
-			throw "Could not open port: "+port;
-			return;
-		}
-		that.poll_lock = setInterval(that.poll, that.poll_frequency);
+		if(port == undefined){var port = that.port;};
+		setTimeout(function() {that.openPort(port);}, 10);
+		
 	
+	}
+	
+	that.portDidOpen = function() {
+		that.poll_lock = setInterval(that.poll, that.poll_frequency);
 	}
 	
 	that.write = function(str) {
@@ -43,29 +47,33 @@ var SerialPort = function(port, opts) {
 		if (that.serial.available()) {
 		  message = that.serial.readLine();
 		  that.callback(message);
-		  that.buffer.push(str);
+		  that.buffer.push(message);
 		  
 		}
 	
 	}
 	
 	
-	that.openPort = function(port, n_retries) {
-		n_retries = n_retries || 10;
-		for (var i = 0; i < n_retries; i++) {
-			that.open = that.serial.begin(port, that.baudrate);
-			if(that.open){
-				return;
+	that.openPort = function(port) {
+		that.open = that.serial.begin(port, that.baudrate);
+		that.retries--; 
+		if(that.open){that.portDidOpen();}
+		else {
+			if(that.retries > 0){
+				setTimeout(function() {that.openPort(port);}, 100);
 			}
-			
+			else {
+				throw "Could not open port: "+port;
+			}
 		}
-		return;
+		
 	}
 	
 	
 
 
-
+	if(that.port){that.begin(that.port);}
+	
 	return that;
 
 };
