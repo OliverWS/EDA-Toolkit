@@ -20,7 +20,7 @@ require = function(lib){
 	if(window.console){
 		console.log("Loading " + lib.src + "...");
 	}
-	try:
+	try{
 		var tag = document.create(lib.type);
 		tag.setAttribute("src", lib.src);
 		if(type == "link"){
@@ -30,6 +30,7 @@ require = function(lib){
 			tag.setAttribute("type", "text/javascript");
 		}
 		document.head.appendChild(tag);
+	}
 	catch (error) {
 		if(window.console){
 			console.log("Problem loading " + lib.src);
