@@ -4,7 +4,7 @@ var jquery = {src:"http://code.jquery.com/jquery-1.9.1.min.js", type:"script"};
 
 var bootstrap_js = {src:"//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js", type:"script"};
 var bootstrap_css = {src:"//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css", type:"link"};
-
+var fontawesome = {src:"//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.min.css", type:"link"};
 var numjs = {src:"https://raw.github.com/OliverWS/js/master/numjs.js",type:"script"};
 var jquery_color = {src:"https://raw.github.com/jquery/jquery-color/master/jquery.color.js", type:"script"};
 var d3js = 	{src:"http://d3js.org/d3.v3.min.js", type:"script"};
@@ -54,7 +54,7 @@ load = function(liblist, onComplete) {
 primaryIncludes = [jquery, bootstrap_js, d3js];
 
 var loadAdditionalLibs = function() {
-
+	require(fontawesome);
 	require(bootstrap_css);
 	require(jquery_color);
 	require(google_client);
