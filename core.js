@@ -30,6 +30,7 @@ require = function(lib){
 			tag.setAttribute("type", "text/javascript");
 		}
 		document.head.appendChild(tag);
+		return tag;
 	}
 	catch (error) {
 		if(window.console){
@@ -39,21 +40,32 @@ require = function(lib){
 	}
 };
 
-(function(){
-	require(jquery);
-	require(bootstrap_js);
+load = function(liblist, onComplete) {
+	if(liblist.length == 0){
+		onComplete();
+	}
+	else{
+		var lib = liblist.slice(0, 1);
+		require(lib).onload = function() {load(liblist,onComplete);};
+	}
+
+};
+primaryIncludes = [jquery, spin, bootstrap_js, d3js, numjs];
+
+loadAdditionalLibs = function(){
+
 	require(bootstrap_css);
-	require(numjs);
 	require(jquery_color);
-	require(d3js);
 	require(google_client);
-	require(spin);
 	require(eda_toolkit);
 	require(dropzone);
 	require(edadroplet);
 	require(videodroplet);
 	require(serial);
 	setTimeout(window.init, 100);
+}
 
+(function() {
+	load(primaryIncludes, loadAdditionalLibs);
 
 })();
