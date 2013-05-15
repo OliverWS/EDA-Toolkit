@@ -22,12 +22,15 @@ require = function(lib){
 	}
 	try{
 		var tag = document.createElement(lib.type);
-		tag.setAttribute("src", lib.src);
 		if(lib.type == "link"){
 			tag.setAttribute("rel", "stylesheet");
+			tag.setAttribute("href", lib.src);
+			
 		}
 		else if (lib.type == "script") {
 			tag.setAttribute("type", "text/javascript");
+			tag.setAttribute("src", lib.src);
+			
 		}
 		document.head.appendChild(tag);
 		return tag;
