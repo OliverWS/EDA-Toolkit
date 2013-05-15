@@ -45,13 +45,13 @@ load = function(liblist, onComplete) {
 		onComplete();
 	}
 	else{
-		var lib = liblist.slice(0,1);
+		var lib = liblist.splice(0,1)[0];
 		var node = require(lib);
 		node.onload = function() {load(liblist,onComplete);};
 	}
 
 };
-primaryIncludes = [jquery, spin, bootstrap_js, d3js, numjs];
+primaryIncludes = [jquery, bootstrap_js, d3js];
 
 var loadAdditionalLibs = function() {
 
