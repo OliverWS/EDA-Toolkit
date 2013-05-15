@@ -53,7 +53,7 @@ load = function(liblist, onComplete) {
 };
 primaryIncludes = [jquery, spin, bootstrap_js, d3js, numjs];
 
-loadAdditionalLibs = function(){
+var loadAdditionalLibs = function() {
 
 	require(bootstrap_css);
 	require(jquery_color);
@@ -64,7 +64,7 @@ loadAdditionalLibs = function(){
 	require(videodroplet);
 	require(serial);
 	setTimeout(window.init, 100);
-}
+};
 
 (function() {
 	load(primaryIncludes, loadAdditionalLibs);
