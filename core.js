@@ -46,7 +46,8 @@ load = function(liblist, onComplete) {
 	}
 	else{
 		var lib = liblist.slice(0, 1);
-		require(lib).onload = function() {load(liblist,onComplete);};
+		var node = require(lib);
+		node.onload = function() {load(liblist,onComplete);};
 	}
 
 };
