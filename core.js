@@ -53,7 +53,7 @@ require = function(lib){
 	require(edadroplet);
 	require(videodroplet);
 	require(serial);
-
+	setTimeout(window.init, 100);
 
 
 })();
