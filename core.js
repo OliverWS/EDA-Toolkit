@@ -20,15 +20,22 @@ require = function(lib){
 	if(window.console){
 		console.log("Loading " + lib.src + "...");
 	}
-	var tag = document.create(lib.type);
-	tag.setAttribute("src", lib.src);
-	if(type == "link"){
-		tag.setAttribute("rel", "stylesheet");
+	try:
+		var tag = document.create(lib.type);
+		tag.setAttribute("src", lib.src);
+		if(type == "link"){
+			tag.setAttribute("rel", "stylesheet");
+		}
+		else if (type == "script") {
+			tag.setAttribute("type", "text/javascript");
+		}
+		document.head.appendChild(tag);
+	catch (error) {
+		if(window.console){
+			console.log("Problem loading " + lib.src);
+			console.log(error);
+		}
 	}
-	else if (type == "script") {
-		tag.setAttribute("type", "text/javascript");
-	}
-	document.head.appendChild(tag);
 };
 
 (function(){
