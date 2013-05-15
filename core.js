@@ -21,7 +21,7 @@ require = function(lib){
 		console.log("Loading " + lib.src + "...");
 	}
 	try{
-		var tag = document.create(lib.type);
+		var tag = document.createElement(lib.type);
 		tag.setAttribute("src", lib.src);
 		if(type == "link"){
 			tag.setAttribute("rel", "stylesheet");
