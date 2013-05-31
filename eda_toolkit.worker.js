@@ -4,8 +4,8 @@ importScripts("signals.js");
 //importScripts("https://raw.github.com/eligrey/BlobBuilder.js/master/BlobBuilder.min.js");
 var separator = "---------------------------------------------------------";
 
-var console = {};
-console.log = function(msg) {
+var console = console || {};
+console.log = console.log || function(msg) {
 	self.postMessage({cmd:"console","msg":msg});
 
 };
@@ -156,15 +156,14 @@ self.downsampleMultiChannel = function(opts) {
 		var data = signals.sanitize(points,[0.0,0.0],[NaN,"-"]);
 			
 		var downsampled = [];
-		var inc = Math.floor(data.length/target);
+		var inc = Math.ceil(data.length/target);
 		console.log("Data length: " + data.length + " Target: " + target + " so increment is " + inc);
 		if(data.length <= target){
 			downsampled = data;
 		}
 		else {
 			//var data = signals.medianFilter(data,inc);
-			var data = gaussianFilter(data, inc, 20);
-			
+			var data = gaussianFilter(data, int(inc), 20);
 			for(var n=0; n < data.length; n+= inc) {
 				downsampled.push(data[n]);
 			
@@ -173,7 +172,6 @@ self.downsampleMultiChannel = function(opts) {
 		}
 		downsampledData.push(downsampled);
 	}
-	console.log("Downsampled " + opts.points.length + " channels to : " + downsampled.length);
 	self.postMessage({cmd:"downsampled", "data":downsampledData,"key":opts.key});
 	//console.log(downsampled);
 };
@@ -282,7 +280,6 @@ self.parseBinaryData = function(body, columnHeaders) {
 	        }
 	        
 	        var samples = unpackStruct(line);
-	        //console.log(samples);
 	        //# using unrolled loop for speed and code readability
 	        
 	        
@@ -308,6 +305,7 @@ self.parseBinaryData = function(body, columnHeaders) {
 	        }
 		}
 		catch (error) {
+
 			continue;
 		}
 	}
@@ -318,10 +316,17 @@ self.parseBinaryData = function(body, columnHeaders) {
 
 self.get = function(url, callback) {
 	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.responseType = 'arraybuffer';
 	xmlhttp.open("GET",url,false);
 	xmlhttp.send();
-	var text = xmlhttp.responseText;
-	
-	self.parse( text );
+	var uInt8Array = new Uint8Array(xmlhttp.response);
+	var i = uInt8Array.length;
+	var binaryString = new Array(i);
+	while (i--)
+	{
+	  binaryString[i] = String.fromCharCode(uInt8Array[i]);
+	}
+	var data = binaryString.join('');
+	self.parse( data );
 	
 };

@@ -12,6 +12,8 @@ var EDADroplet = function(id, callback, opts) {
 	that.graph = function(dat) {
 		console.log("Preparing to graph");
 		that.grapher = new Grapher( document.getElementById(that.id) );
+		//that.grapher = new qGraph( that.id, that.edaFile);
+		
 		$("#"+that.id).find(".loader").remove();
 		that.grapher.plot(that.edaFile);
 		

@@ -364,7 +364,7 @@ var Grapher = function(div, opts) {
 		var bounds = that.edaContainer[0][0].getBoundingClientRect();
 		//console.log("Bounds: ");
 		//console.log(bounds);
-		if(!((start == that.eda.startTime) && (end == that.eda.endTime))){
+		if(!((start == that.eda.startTime) && (end == that.eda.endTime)) && $("button.clearButton").length == 0){
 			$(that.container).append(
 				$("<button>")
 					.addClass("btn")

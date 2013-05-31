@@ -3,6 +3,46 @@ var pi = Math.PI;
 var np = {};
 var MU = "\u03BC";
 
+urlParams = (function()
+	{
+		var items = location.search.substring(1).split("&");
+		var map = {};
+
+		var translate =
+		{
+			"true" : true,
+			"false" : false,
+			"null" : null
+		};
+
+		for (var i=0, l=items.length; i<l; i++)
+		{
+			var item = items[i];
+			var pos = item.indexOf("=");
+
+			var name = pos == -1 ? item : item.substring(0, pos);
+			var value = pos == -1 ? true : item.substring(pos+1);
+
+			if (value in translate) {
+				value = translate[value];
+			} else if ("" + parseFloat(value, 10) == value) {
+				value = parseFloat(value, 10);
+			}
+
+			map[name] = value;
+		}
+
+		// Cleanup temporary reference types
+		items = translate = null;
+
+		/**
+		 * {String} Returns the value of the given parameter @name {String}.
+		 */
+		return function get(name) {
+			return name in map ? map[name] : null;
+		}
+	})();
+
 float = function(val) {
 	return val*1.0;
 };
@@ -113,10 +153,6 @@ Number.prototype.pad = function(padding) {
 	return s;
 };
 
-Number.prototype.isNaN = function() {
-
-	return isNaN(this);
-}
 
 Date.prototype.toQFormat = function() {
 	var output = "";
@@ -204,6 +240,7 @@ Date.prototype.addMilliseconds = function(ms) {
 	
 
 };
+
 
 Date.prototype.addSeconds = function(seconds) {
 	return this.addMilliseconds(seconds*1000);
@@ -376,6 +413,17 @@ gaussianFilter = function(values, width, resolution){
 
 }
 
+np.timeRange = function(start,end,nsteps) {
+	var duration = end-start;
+	var step = Math.floor(float(duration)/nsteps);
+	var tr = new Array();
+	for (var i=0; i < nsteps; i++) {
+		tr.push(start.addMilliseconds(step*i));
+	}
+	return tr;
+
+}
+
 np.arange = function(start,end,step) {
 	if(step == undefined){
 		step = 1;
@@ -447,7 +495,7 @@ convolve = function(mat1,mat2) {
 np.sum = function(values) {
 	var result = 0;
 	for(var n=0;n<values.length;n++) {
-		if(!values[n].isNaN){
+		if(!values[n].isNaN()){
 			result += values[n];
 		}
 	}

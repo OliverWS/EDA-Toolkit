@@ -2,6 +2,7 @@ var Dropzone = function(el,callback,opts) {
 	var that = this;
 	var opts = opts || {};
 	that.active = true;
+	that.allowFolders = opts.allowFolders || false;
 	that.width = (opts.width || $("#"+el).width()) || 300;
 	that.height = (opts.height || $("#"+el).height()) || that.width;
 	that.autoremove = opts.autoremove || true;
@@ -37,10 +38,23 @@ var Dropzone = function(el,callback,opts) {
 	dropzone.ondragend = function () { this.className.replace("hover", ""); return false; };
 	dropzone.ondrop = function(e) {	
 		e.preventDefault();
-		var file = e.dataTransfer.files[0];
-		that.callback(file);
-		if(that.autoremove){
-			that.remove();
+		if(that.allowFolders){
+			var entry = e.dataTransfer.items[0].webkitGetAsEntry();
+			if(entry.isDirectory){
+				window.entry = entry;
+				that.callback(entry);
+				if(that.autoremove){
+					that.remove();
+				}
+			}
+		}
+		else{
+			var file = e.dataTransfer.files[0];
+		
+			that.callback(file);
+			if(that.autoremove){
+				that.remove();
+			}
 		}
 	};
 	that.dropzone = dropzone;
