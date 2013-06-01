@@ -4,6 +4,11 @@ var VideoDroplet = function(id, callback, opts) {
 	that.id = id;
 	that.extension = opts.extension || false;
 	that.callback = callback;
+	that.vsize = opts.vsize || {};
+	that.vsize.width = opts.vsize.width || 720;
+	that.vsize.height = opts.vsize.height || 480;
+	
+	
 	
 	that.insertVideo = function(vid, metadata) {
 		var name = metadata.name;
@@ -24,7 +29,7 @@ var VideoDroplet = function(id, callback, opts) {
 		$("#" +that.id).css("height","auto");
 		_V_("video").ready(function(){
 			var player = this;
-			player.size(854,480);
+			player.size(that.vsize.width,that.vsize.height);
 			that.callback(player);
 		});
 	};
