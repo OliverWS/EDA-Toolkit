@@ -5,6 +5,8 @@ var Grapher = function(div, opts) {
 	this.opts = opts || {};
 	this.channel = this.opts.channel || "EDA";
 	this.autoscale = this.opts.autoscale || true;
+	this.readCallback = function() {};
+	this.didLoad = false;
 	this.spinOpts = {
 	  lines: 13, // The number of lines to draw
 	  length: 21, // The length of each line
@@ -34,7 +36,8 @@ var Grapher = function(div, opts) {
 	}
 	this.width = $(div).width();
 	this.height = $(div).height();
-	this.plot = function(data) {
+	this.plot = function(data, callback) {
+		if(callback) that.readyCallback = callback;
 		if(that.spinner) {
 		}
 		else {
@@ -71,6 +74,7 @@ var Grapher = function(div, opts) {
 			//console.log(">>Grapher: Data appears to be undefined!");
 		}
 		that.spinner.stop();
+		
 	};
 	
 	this.renderCanvas = function(points) {
@@ -207,7 +211,10 @@ var Grapher = function(div, opts) {
 			
 			}
 		}
-		
+		if(that.readyCallback && !that.didLoad){
+			that.didLoad = true;
+			that.readyCallback(that);
+		}
 	
 	};
 	
