@@ -5,19 +5,17 @@ var EDADroplet = function(id, callback, opts) {
 	that.extension = opts.extension || "eda";
 	that.callback = callback;
 	that.edaFile = new qLogFile();
-	that.edaFile.progress = "progress-indicator-" + parseInt(Math.random()*10000, 10) ;
+	that.edaFile.progress = "progress-indicator" ;
 	
 	that.draw = function(points) {	
 	};
 	that.graph = function(dat) {
 		console.log("Preparing to graph");
 		that.grapher = new Grapher( document.getElementById(that.id) );
-		//that.grapher = new qGraph( that.id, that.edaFile);
-		
 		$("#"+that.id).find(".loader").remove();
 		that.grapher.plot(that.edaFile);
 		
-		that.callback(that.edaFile);
+		that.callback(that.edaFile, that.grapher);
 	};
 	
 	that.dropzone = new Dropzone(that.id,

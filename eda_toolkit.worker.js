@@ -4,8 +4,8 @@ importScripts("signals.js");
 //importScripts("https://raw.github.com/eligrey/BlobBuilder.js/master/BlobBuilder.min.js");
 var separator = "---------------------------------------------------------";
 
-var console = console || {};
-console.log = console.log || function(msg) {
+var console = {};
+console.log = function(msg) {
 	self.postMessage({cmd:"console","msg":msg});
 
 };
@@ -53,8 +53,11 @@ self.parse = function(text) {
 	var headerPlusBody = text.toString().split(separator);
 	var headers = headerPlusBody[0].split("\n");
 	var parsedHeaders = self.parseHeaders(headers);	
-	if(parsedHeaders["File Version"] < 1.5) {
+	if(parsedHeaders["File Version"] < 1.1) {
 		self.parseTextData(headerPlusBody[1], ["Z","Y","X","Batt","Temperature","EDA"]);
+	}
+	else if((parsedHeaders["File Version"] < 1.5) && (parsedHeaders["File Version"] > 1.09)) {
+		self.parseTextData(headerPlusBody[1], parsedHeaders["Column Names"]);
 	}
 	else {
 		self.parseBinaryData(headerPlusBody[1], ["Z","Y","X","Batt","Temperature","EDA"]);
@@ -63,6 +66,7 @@ self.parse = function(text) {
 
 self.parseHeaders = function(metadata) {
 	var headers = {};
+	var validColumnNames = [], colNames;
 	for(var n=0; n < metadata.length; n++) {
 		var row = metadata[n];
 		if(row.indexOf(": ") > -1) {
@@ -72,10 +76,45 @@ self.parseHeaders = function(metadata) {
 				headers[property] = value.autoconvert();
 			}
 		}
+		else if(row.indexOf(" | ") > -1){
+			//Now parse out the channels directly
+			//" Z-axis | Y-axis | X-axis | Battery | °Celsius | EDA(uS) "
+			colNames = row.replace(/^\s*|\s*$/g, "");
+			colNames = colNames.split(" | ");
+			console.log("Column Names: " + colNames);
+			for (var i = 0; i < colNames.length; i++) {
+				switch (colNames[i]) {
+					case "Z-axis":
+						colNames[i] = "Z";
+						break;
+					case "Y-axis":
+						colNames[i] = "Y";
+						break;
+					case "X-axis":
+						colNames[i] = "X";
+						break;
+					case "°Celsius":
+						colNames[i] = "Temperature";
+						break;
+					case "EDA(uS)":
+						colNames[i] = "EDA";
+						break;
+					default:
+						//Do nothing
+						break;
+				}
+				if (colNames[i].toLowerCase() != "events") {
+					validColumnNames.push(colNames[i]);
+				}
+			}
+			
+			headers["Column Names"] = validColumnNames;
+		}
 	
 	}
 	self.metadata = metadata;
 	self.postMessage({cmd:"metadata", data:headers});
+	headers["Column Names"] = colNames;
 	return headers;
 }
 
@@ -122,7 +161,7 @@ self.filter = function(opts) {
 
 self.downsample = function(opts) {
 	console.log("In downsample");
-	var data = signals.sanitize(opts.points,[0.0,0.0],[NaN,"-"]);
+	var data = signals.sanitize(opts.points,[0.0],[NaN]);
 	var target = opts.target;
 	
 	//start with naive downsampling;
@@ -153,17 +192,18 @@ self.downsampleMultiChannel = function(opts) {
 	var downsampledData = [];
 	for (var i = 0; i < opts.points.length; i++) {
 		var points = opts.points[i];
-		var data = signals.sanitize(points,[0.0,0.0],[NaN,"-"]);
+		var data = signals.sanitize(points,[0.0],[NaN]);
 			
 		var downsampled = [];
-		var inc = Math.ceil(data.length/target);
+		var inc = Math.floor(data.length/target);
 		console.log("Data length: " + data.length + " Target: " + target + " so increment is " + inc);
 		if(data.length <= target){
 			downsampled = data;
 		}
 		else {
 			//var data = signals.medianFilter(data,inc);
-			var data = gaussianFilter(data, int(inc), 20);
+			var data = gaussianFilter(data, inc, 20);
+			
 			for(var n=0; n < data.length; n+= inc) {
 				downsampled.push(data[n]);
 			
@@ -172,8 +212,9 @@ self.downsampleMultiChannel = function(opts) {
 		}
 		downsampledData.push(downsampled);
 	}
+	console.log("Downsampled " + opts.points.length + " channels to : " + downsampled.length);
+	console.log(downsampledData);
 	self.postMessage({cmd:"downsampled", "data":downsampledData,"key":opts.key});
-	//console.log(downsampled);
 };
 
 
@@ -221,7 +262,9 @@ self.parseTextData = function(body, columnHeaders) {
 	console.log(columnHeaders);
 	var data  = {};
 	for(var col=0; col < columnHeaders.length; col++){
-		data[columnHeaders[col]] = [];
+		if (columnHeaders[col].toLowerCase() != "events") {
+			data[columnHeaders[col]] = [];
+		}
 	}
 	data.markers = [];
 	var lines = body.split("\n");
@@ -230,17 +273,23 @@ self.parseTextData = function(body, columnHeaders) {
 		if((n % 1000) == 0) { 
 			self.postMessage({cmd:"progress", progress:(float(n)/length)});
 		}
-		if(lines[n].indexOf(",,,,,") > -1){
+		if(lines[n].indexOf(",,,,,") > -1 ){
 			//It's an event
-			data.markers.push(n);
+			data.markers.push({index:n,comment:"",type:"manual"} );
 		}
+		
 		else {
 			var values = lines[n].split(",");
 			for(var c=0; c < values.length; c++) {
 				var value = values[c];
-				if(value != undefined && value != "") {
-				
-					data[columnHeaders[c]].push(value.autoconvert());
+				if(value != undefined && value != "" && value.length>0 && value.charCodeAt(0) != 13) {
+					if (columnHeaders[c].toLowerCase() == "events") {
+						console.log("Value: " + value + " | value.length=" + value.length + " | value.charCode=" + value.charCodeAt(0));
+						data.markers.push({index:n,comment:value,type:"generated"});
+					}
+					else{
+						data[columnHeaders[c]].push(value.autoconvert());
+					}
 				}
 			}
 			
@@ -280,6 +329,7 @@ self.parseBinaryData = function(body, columnHeaders) {
 	        }
 	        
 	        var samples = unpackStruct(line);
+	        //console.log(samples);
 	        //# using unrolled loop for speed and code readability
 	        
 	        
@@ -305,7 +355,6 @@ self.parseBinaryData = function(body, columnHeaders) {
 	        }
 		}
 		catch (error) {
-
 			continue;
 		}
 	}
@@ -316,17 +365,10 @@ self.parseBinaryData = function(body, columnHeaders) {
 
 self.get = function(url, callback) {
 	var xmlhttp = new XMLHttpRequest();
-	xmlhttp.responseType = 'arraybuffer';
 	xmlhttp.open("GET",url,false);
 	xmlhttp.send();
-	var uInt8Array = new Uint8Array(xmlhttp.response);
-	var i = uInt8Array.length;
-	var binaryString = new Array(i);
-	while (i--)
-	{
-	  binaryString[i] = String.fromCharCode(uInt8Array[i]);
-	}
-	var data = binaryString.join('');
-	self.parse( data );
+	var text = xmlhttp.responseText;
+	
+	self.parse( text );
 	
 };

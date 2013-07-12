@@ -1,7 +1,7 @@
 
 var qLogFile =  function () {
 	var that = this;
-	this.worker = new Worker("js/lib/eda_toolkit.worker.js");
+	this.worker = new Worker("js/eda_toolkit.worker.js");
 	that.isEDAFile = true;
 	that.didAlreadyLoad = false;
 	that.filename = "EDA File";
@@ -12,7 +12,7 @@ var qLogFile =  function () {
 		////console.log(event);
 		switch (msg.cmd) {
 		  case 'console':
-		    //console.log(msg.msg);
+		    console.log(msg.msg);
 		    break;
 		  case 'metadata':
 		    that.metadataDidLoad(msg.data);
@@ -35,10 +35,11 @@ var qLogFile =  function () {
 		  	break;
 		  
 		  case 'downsampled':
-		  	//console.log("Got downsampled data back");
-		  	//console.log(that.callback);
+		  	console.log("Got downsampled data back");
 		  	if (msg.key) {
-		  		that.callbacks[msg.key](msg.data);
+		  		var dat = msg.data;
+		  		console.log(dat);
+		  		that.callbacks[msg.key](dat);
 		  	}
 		  	else {
 		  		that.callback(msg.data);
@@ -65,7 +66,7 @@ var qLogFile =  function () {
 		
 		this.callback = callback;
 		if(this.worker == undefined) {
-			this.worker = new Worker("js/lib/eda_toolkit.worker.js");
+			this.worker = new Worker("js/eda_toolkit.worker.js");
 		}
 		this.worker.onmessage = this.handleMessage;
 		this.worker.postMessage({cmd:"load",url:this.url});
@@ -77,7 +78,7 @@ var qLogFile =  function () {
 		this.callback = callback;
 		if(filename != undefined) this.filename = filename;
 		if(this.worker == undefined) {
-			this.worker = new Worker("js/lib/eda_toolkit.worker.js");
+			this.worker = new Worker("js/eda_toolkit.worker.js");
 		}
 		this.worker.onmessage = this.handleMessage;
 		this.worker.postMessage({cmd:"loadText","data":data});
@@ -114,14 +115,16 @@ var qLogFile =  function () {
 		this.metadata = metadata;
 		this.startTime = this.metadata["Start Time"];
 		this.sampleRate = this.metadata["Sampling Rate"];
+		this.channels = this.metadata["Column Names"];
 	
 	};
 	
 	this.dataDidLoad = function(data) {
 		//console.log("Got data");
 		this.data = data;
-		this.data.length = this.data.EDA.length;
-		var ms = (this.data.EDA.length/this.sampleRate)*1000;
+		this.events = data.markers;
+		this.data.length = this.channels.map(function(c){return that.data[c].length;}).min();
+		var ms = (this.data.length/this.sampleRate)*1000;
 		//console.log(ms);
 		this.endTime = this.startTime.addMilliseconds(ms);
 		this.duration = this.endTime.sub(this.startTime);
@@ -163,56 +166,27 @@ var qLogFile =  function () {
 	
 	this.offsetForTime = function(time) {
 		var diff = time.sub(this.startTime);
-		if(diff.valueOf() >= 0 && diff.valueOf() <= this.duration.valueOf()) {
+		if(diff.valueOf() > 0 && diff.valueOf() < this.duration.valueOf()) {
 			return Math.round( diff.valueOf()/(1000.0/this.sampleRate) );
 		
 		}
 		else {
-			throw "Illegal Time: " + time +". Time must be between " + this.startTime + " and " + this.endTime;
+			return NaN;
 		}
 		
 	};
 	
 	this.timeForOffset = function(offset) {
 		var offsetMilliseconds = offset*(1000.0/this.sampleRate);
-		if((offsetMilliseconds >= 0) && (offsetMilliseconds < this.duration.valueOf())) {
+		if((offsetMilliseconds >= 0 && offsetMilliseconds) < this.duration.valueOf()) {
 			return this.startTime.add(TimeDelta(offsetMilliseconds));
 		
 		}
 		else {
-			throw "Illegal Offset: " + offset +". Offset must be between " + 0 + " and " + this.data.EDA.length-1;
+			return NaN;
 		}
 		
 	};
-	
-	this.get = function(callback, opts) {
-		var opts = opts || {};
-		var start = opts.start || this.timeForOffset(0);
-		var end = opts.end || this.timeForOffset(that.data.EDA.length - 1);
-		var channels = opts.channels || ["EDA","X","Y","Z"];
-		var targetSamples = opts.targetSamples || (this.offsetForTime(end) - this.offsetForTime(start));
-		console.log("start: " + start + "("+this.offsetForTime(start)+") \n end: "+ end + "("+this.offsetForTime(end)+") \n targetSamples: " + targetSamples);	
-		that.getMultiChannelDataForOffsetRange(channels, this.offsetForTime(start), this.offsetForTime(end), targetSamples, 
-			function(data) {
-				console.log(data);
-				var combinedData = new Array();
-				var timesteps = np.timeRange(start,end,targetSamples);
-
-				for (var i = 0; i < data[0].length; i++) {
-					var sample = {};
-					for(var c=0; c < channels.length; c++){
-						sample[channels[c]] = data[c][i];
-					}
-					sample["time"] = timesteps[i];
-					combinedData.push(sample);
-				}
-				callback(combinedData);
-			
-			});
-		
-	
-	};
-	
 	
 	this.getData = function(channel, targetSamples, callback) {
 		var points = that.data[channel];
@@ -260,12 +234,7 @@ var qLogFile =  function () {
 		if (callback) {
 			var token = (Math.random()*10).toString();
 			that.callbacks[token] = callback;
-			if(targetSamples > 0){
-				this.worker.postMessage({cmd:"downsampleMultiChannel", "data":{"points":data, target:targetSamples,key:token}});
-			}
-			else {
-				throw "Target Samples Error: target samples must be greater than 0 and less than " + this.data.length +", not " + targetSamples;
-			}
+			this.worker.postMessage({cmd:"downsampleMultiChannel", "data":{"points":data, target:targetSamples,key:token}});
 		}
 		else {
 			return points;
@@ -274,7 +243,7 @@ var qLogFile =  function () {
 	
 	
 	this._getDataForOffsetRange = function(channel, start, end) {
-		if( (start >= 0) && (end < this.data.EDA.length) && this.data.hasOwnProperty(channel)) {
+		if( (start >= 0) && (end < this.data.length) && this.data.hasOwnProperty(channel)) {
 			return this.data[channel].slice(start, end);
 		}
 		else {

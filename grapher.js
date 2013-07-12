@@ -3,10 +3,16 @@ var Grapher = function(div, opts) {
 	this.container = div;
 	this.unrendered = true;
 	this.opts = opts || {};
-	this.channel = this.opts.channel || "EDA";
+	this.channels = this.opts.channel || ["EDA"];
 	this.autoscale = this.opts.autoscale || true;
-	this.readCallback = function() {};
-	this.didLoad = false;
+	this.units = {
+		"EDA": "\u03BC" + "S",
+		"X" : "gs",
+		"Y" : "gs",
+		"Z" : "gs",
+		"Tonic" : "\u03BC" + "S",
+		"Phasic" : "\u03BC" + "S"
+	};
 	this.spinOpts = {
 	  lines: 13, // The number of lines to draw
 	  length: 21, // The length of each line
@@ -36,8 +42,7 @@ var Grapher = function(div, opts) {
 	}
 	this.width = $(div).width();
 	this.height = $(div).height();
-	this.plot = function(data, callback) {
-		if(callback) that.readyCallback = callback;
+	this.plot = function(data) {
 		if(that.spinner) {
 		}
 		else {
@@ -50,7 +55,8 @@ var Grapher = function(div, opts) {
 				if(that.unrendered) {
 					if(data.isEDAFile){
 						that.isEDA = true;
-						that.renderEDA(data);
+						that.renderData(data);
+						that.addPicker();
 					}
 					else {
 						that.renderSVG(data);						
@@ -59,7 +65,7 @@ var Grapher = function(div, opts) {
 				}
 				else {
 					if(data.isEDAFile){
-						that.updateEDA(data);
+						that.renderUpdate(data);
 					}
 					else {
 						that.updateSVG(data);
@@ -74,7 +80,62 @@ var Grapher = function(div, opts) {
 			//console.log(">>Grapher: Data appears to be undefined!");
 		}
 		that.spinner.stop();
+	};
+	
+	this.addPicker = function() {
+//		<div class="btn-toolbar">
+//			<div class="btn-group">
+//			  <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+//			    Action
+//			    <span class="caret"></span>
+//			  </a>
+//			  <ul class="dropdown-menu" id="channel-select">
+//			    
+//			  </ul>
+//			</div>
+//		</div>
+		var root = $(that.container);
+		$(that.container).prepend($("<div>").addClass("btn-toolbar").addClass("pull-right").append(
+			$("<div>").addClass("btn-group").append(
+				$("<a>").attr("class","btn dropdown-toggle").attr("data-toggle","dropdown").attr("href","#").html("Channels\n<span class='caret'></span>")
+			).append(
+				$("<ul>").addClass("dropdown-menu").attr("id","channel-select")
+			)
+		));
 		
+		$(root).find("#channel-select").empty();
+		var edaFile = that.datasource;
+		edaFile.channels.forEach(function(arg,idx) {
+			if(arg != "length"){
+				$("#channel-select").append($("<li>").html("<a href='#'>" + arg + "</a>"));
+				console.log("Adding channel: " + arg);
+			}
+		
+		});
+		$(root).find("#channel-select li a").each(function(i,el) {
+			console.log(el);
+			console.log(that.channels.find($(el).text()));
+			if(that.channels.find($(el).text()).length > 0){
+				$(el).attr("class","selected-channel");
+			}
+			else {
+				$(el).attr("class", "");
+			}
+		});
+		
+		$(root).find("#channel-select li a").on("click", function(evt) {
+			$(this).toggleClass("selected-channel");
+			var selectedChannels = [];
+			$(root).find("#channel-select li a.selected-channel").each(function(i, el) {
+				selectedChannels.push($(el).text());
+			});
+			console.log("New Selected Channels: " + selectedChannels);
+			that.setChannels(selectedChannels);
+		
+		});
+		
+		
+	
 	};
 	
 	this.renderCanvas = function(points) {
@@ -94,30 +155,57 @@ var Grapher = function(div, opts) {
 		}
 	}
 	
-	this.renderEDA = function(eda) {
-		that.eda = eda;
+	this.renderData = function(eda) {
+		that.datasource = eda;
 		var el = this.container;
 		var p = ($(el).width()/10) < 25 ? ($(el).width()/10) : 25;
 		that.w = $(el).width() - 3*p;
 		that.h = $(el).height() - 2*p;
-		//console.log("Length of eda is: " + that.eda.data.EDA.length);
-		that.eda.x = d3.scale.linear().domain([0, that.w]).range([0, that.eda.data.EDA.length]);
-		that.eda.y = d3.scale.linear().domain([0, that.h]).range([that.eda.data.EDA.max(), 0]);
-		that.eda.getDataForOffsetRange(that.channel, 0, that.eda.data.EDA.length-1, that.w, function(data) {
+		//console.log("Length of eda is: " + that.datasource.data[that.channels[0]].length);
+		that.datasource.x = d3.scale.linear().domain([0, that.w]).range([0, that.datasource.data.length]);
+		that.datasource.y = d3.scale.linear().domain([0, that.h]).range([that.channels.map(function(d) {return that.datasource.data[d].max();}).max(), that.channels.map(function(d) {return that.datasource.data[d].min();}).min()]);
+		
+		localStorage.range = {xmin:0,xmax:that.datasource.data.length-1,ymin:0,ymax:10};
+		
+		that.datasource.getMultiChannelDataForOffsetRange(that.channels, 0, that.datasource.data.length-1, that.w, function(data) {
 			that.renderSVG(data);
 			
-		});
-		if (that.showACC) {
-			that.eda.getDataForOffsetRange("acc", 0, that.eda.data.EDA.length-1, that.w, function(d) {
-				that.renderACC(d);
-			});
-			
-		}
-		
+		});		
 		
 	};
 	
 	this.zoom_rect = {};
+	
+	this.setChannels = function(channels) {
+		var validChannels = [];
+		for (var i = 0; i < channels.length; i++) {
+			var c = channels[i];
+			if (that.datasource.data.hasOwnProperty(c)) {
+				validChannels.push(c);
+				if (that.channels.find(c).length == 0) {
+					//This is a new channel
+					that.datasourceContainer.append("path")
+						.attr("d", "")
+					    .attr("class", c.toLowerCase())
+					    .attr("clip-path", "url(#edaclip)")
+					    .attr("id",c);
+					
+				}
+			}
+		}
+		for (var i = 0; i < that.channels.length; i++) {
+			var c = that.channels[i];
+		
+			if (validChannels.find(c).length == 0) {
+				that.datasourceContainer.select("#"+c).remove();
+			}
+		}
+		
+		that.channels = validChannels;
+		that.renderUpdate();
+		
+	};
+	
 	
 	this.renderSVG = function(data, acc) {
 		that.data = data;
@@ -137,17 +225,16 @@ var Grapher = function(div, opts) {
 		}
 		that.w = w;
 		that.h = h;
-		var x = d3.scale.linear().domain([0, data.length]).range([0, w]);
-		if(that.eda.y && !that.autoscale){
-			//console.log("EDA Range: " + that.eda.y.range() + " | Data: " + data.min() + " to " + data.max());
-			var yrange = [ that.eda.y.range()[1], that.eda.y.range()[0] ];
+		//Set x according to the shortest waveform to ensure valid data for whole container
+		var x = d3.scale.linear().domain([0, data.map(function(d) {return d.length}).min()]).range([0, w]);
+		if(that.datasource.y && !that.autoscale){
+			//console.log("EDA Range: " + that.datasource.y.range() + " | Data: " + data.min() + " to " + data.max());
+			var yrange = [ that.datasource.y.range()[1], that.datasource.y.range()[0] ];
 			var y = d3.scale.linear().domain(yrange).range([that.h, 0]);
 		}
 		else {
-			var y = d3.scale.linear().domain([data.min(),data.max()]).range([that.h, 0]);
+			var y = d3.scale.linear().domain([data.map(function(d) {return d.min();}).min(),data.map(function(d) {return d.max();}).max()]).range([that.h, 0]);
 		}
-		data.unshift(0.0);
-		data.push(0.0);
 		
 		that.x = x;
 		that.y = y;
@@ -178,28 +265,33 @@ var Grapher = function(div, opts) {
 		.attr("y", "0")
 		.attr("width", w)
 		.attr("height", h);
-		that.edaContainer = edaContainer;
+		that.datasourceContainer = edaContainer;
 		
 		
 		that.renderGrid(edaContainer);
 		
-		edaContainer.append("path")
-			.attr("d", line(data))
-		    .attr("class", that.channel.toLowerCase())
-		    .attr("clip-path", "url(#edaclip)")
-		    .attr("id",that.channel);
+		for (var i = 0; i < that.channels.length; i++) {
+			data[i].unshift(0.0);
+			data[i].push(0.0);
 		
-		if(that.eda.data.markers && (that.eda.data.markers.length > 0)){
+			edaContainer.append("path")
+				.attr("d", line(data[i]))
+			    .attr("class", that.channels[i].toLowerCase())
+			    .attr("clip-path", "url(#edaclip)")
+			    .attr("id",that.channels[i]);
+		}
+		
+		if(that.datasource.events && (that.datasource.events.length > 0)){
 			
-			for (var i = 0; i < that.eda.data.markers.length; i++) {
-				var d = that.eda.data.markers[i];
-				console.log("Marker at " + d + "(" + that.eda.x.invert(d) + "px in current coordinate space) or " + that.eda.timeForOffset(d).toTimeString());
+			for (var i = 0; i < that.datasource.events.length; i++) {
+				var d = that.datasource.events[i];
+				console.log("Marker at " + d + "(" + that.datasource.x.invert(d.index) + "px in current coordinate space) or " + that.datasource.timeForOffset(d.index).toTimeString());
 				edaContainer.append("circle")
 					.datum(d)
 					.attr("class","marker")
-					.attr("title","Marker " + (i+1) + " | " + that.eda.timeForOffset(d).toTimeString())
-					.attr("cx", function(d) {return that.eda.x.invert(d);})
-					.attr("cy", function(d) {return that.y(that.data[Math.round(that.eda.x.invert(d))]);})
+					.attr("title", function(d) {return d.comment})
+					.attr("cx", function(d) {return that.datasource.x.invert(d.index);})
+					.attr("cy", function(d) {return that.y(that.data[Math.round(that.datasource.x.invert(d.index))]);})
 					.attr("r", 5)
 					.style("stroke","red")
 					.style("fill","none")
@@ -211,99 +303,31 @@ var Grapher = function(div, opts) {
 			
 			}
 		}
-		if(that.readyCallback && !that.didLoad){
-			that.didLoad = true;
-			that.readyCallback(that);
-		}
+		
 	
 	};
 	
-	this.renderACC = function(acc) {
-		var p = that.p;
-		var x = that.x;		
-		if(that.eda.accY && !that.autoscale){
-			//console.log("EDA Range: " + that.eda.y.range() + " | Data: " + data.min() + " to " + data.max());
-			var accyrange = [ that.eda.accY.range()[1], that.eda.accY.range()[0] ];
-			var accY = d3.scale.linear().domain(accyrange).range([that.h/2, 0]);
-		}
-		else {
-			var accY = d3.scale.linear().domain([acc.map(function(d) {return d.min();}).min(),acc.map(function(d) {return d.max();}).max()]).range([that.h/2, 0]);
-			that.eda.accY = accY;
-		}
-		accLine = d3.svg.line()
-		    .x(function(d,i) { return x(i); })
-		    .y(function(d) { return  accY(d); });
-		
-		
-		that.accLine = accLine;
-		accContainer = that.svg.append("g").attr("class","accContainer").attr("transform", "translate(" + 2*p + "," + (that.h + p) + ")");
-		accContainer.append("defs").append("svg:clipPath")
-		.attr("id", "accclip")
-		.append("svg:rect")
-		.attr("id", "clip-rect")
-		.attr("x", "0")
-		.attr("y", "0")
-		.attr("width", that.w)
-		.attr("height", that.h/2);
-		
-		that.accContainer = accContainer;
-		that.renderGrid(accContainer,x,accY,that.h/2);
-		
-		accContainer.append("path")
-			.attr("d", accLine(acc[0]))
-		    .attr("class", "accX")
-		    .attr("clip-path", "url(#accclip)")
-		    .attr("id","accX");
-		accContainer.append("path")
-			.attr("d", accLine(acc[1]))
-		    .attr("class", "accY")
-		    .attr("clip-path", "url(#accclip)")
-		    .attr("id","accY");
-		accContainer.append("path")
-			.attr("d", accLine(acc[2]))
-		    .attr("class", "accZ")
-		    .attr("clip-path", "url(#accclip)")
-		    .attr("id","accZ");
-		
-		
-	
-	
-	};
-	
-	this.renderFeatures = function(featurePoints) {
-		that.edaContainer.append("svg:g")
-			.attr("class", "features")
-			.data(featurePoints)
-			.enter().append("svg:circle")
-			.attr("cx", function(d,i) {return that.eda.x.invert(d);})
-			.attr("cy", function(d,i) {return that.y(that.data[mouse[0]-that.p*2]);})
-			.style("stroke-width",3)
-			.attr("r", 5);
-			
-	
-	
-	};
 	
 	this.tooltip = function() {
 		var mouse = d3.mouse(this);
-		that.edaContainer.select("g.gtooltip circle")
+		that.datasourceContainer.select("g.gtooltip circle")
 		.attr("cx", mouse[0])
 		.attr("cy", that.y(that.data[mouse[0]-that.p*2]))
 		.attr("r", 8);
 	
-		that.edaContainer.select("text.gtooltip")
+		that.datasourceContainer.select("text.gtooltip")
 		.attr("x",d3.mouse(this)[0])
 		.attr("y",d3.mouse(this)[1])
-		.text(that.eda.timeForOffset(that.eda.x(mouse[0]- 2*that.p)).toTimeString() + " | " + that.eda.y(mouse[1]- that.p).toFixed(2).toString());
+		.text(that.datasource.timeForOffset(that.datasource.x(mouse[0]- 2*that.p)).toTimeString() + " | " + that.datasource.y(mouse[1]- that.p).toFixed(2).toString());
 	
 	};
 	
 	this.mouseover = function() {
 		var mouse = d3.mouse(this);
-		that.edaContainer.append("svg:g")
+		that.datasourceContainer.append("svg:g")
 			.attr("class", "gtooltip").enter()
 			.append("svg:circle")
-			.attr("class", that.channel.toLowerCase())
+			.attr("class", that.channels[0].toLowerCase())
 			.style("stroke-width",3)
 			.attr("cx", mouse[0])
 			.attr("cy", that.y(that.data[mouse[0]-that.p*2]))
@@ -314,12 +338,12 @@ var Grapher = function(div, opts) {
 			.attr("y",d3.mouse(this)[1])
 			.attr("dy", -5)
 			.attr("text-anchor", "middle")
-			.text(that.eda.timeForOffset(that.eda.x(mouse[0]- 2*that.p)).toTimeString() + " | " + that.eda.y(mouse[1]- that.p).toFixed(2).toString());
+			.text(that.datasource.timeForOffset(that.datasource.x(mouse[0]- 2*that.p)).toTimeString() + " | " + that.datasource.y(mouse[1]- that.p).toFixed(2).toString());
 		/*
-		that.edaContainer.select(this).on("mousemove", that.tooltip);
-		that.edaContainer.select(this).on("mouseout", function() {
-			that.edaContainer.select("g.tooltip").remove();
-			that.edaContainer.select(this).on("mousemove", null);
+		that.datasourceContainer.select(this).on("mousemove", that.tooltip);
+		that.datasourceContainer.select(this).on("mouseout", function() {
+			that.datasourceContainer.select("g.tooltip").remove();
+			that.datasourceContainer.select(this).on("mousemove", null);
 		});
 		*/
 	}
@@ -328,8 +352,8 @@ var Grapher = function(div, opts) {
 		//console.log( "Mouse click at: " + d3.mouse(this));
 		that.zoom_rect.p1 = d3.mouse(this);
 		that.zoom_rect.p2 = d3.mouse(this);
-		that.edaContainer.select("rect.zoomrect").remove(); //In case it already exists for some reason
-		that.edaContainer
+		that.datasourceContainer.select("rect.zoomrect").remove(); //In case it already exists for some reason
+		that.datasourceContainer
 			.append("svg:rect")
 			.attr("class", "zoomrect")
 			.attr("x",function() {return that.zoom_rect.p1[0];})
@@ -339,7 +363,7 @@ var Grapher = function(div, opts) {
 			.style("fill", "rgba(255,0,0,0)")
 			.attr("width", Math.abs(that.zoom_rect.p1[0] - that.zoom_rect.p2[0]))
 			.attr("height", Math.abs(that.zoom_rect.p1[1] - that.zoom_rect.p2[1]));
-		that.edaContainer.on("mousemove", function() {
+		that.datasourceContainer.on("mousemove", function() {
 			var mouse = d3.mouse(this);
 			that.zoom_rect.p2 = mouse;
 			var x = (that.zoom_rect.p1[0] < that.zoom_rect.p2[0]) ? that.zoom_rect.p1[0] : that.zoom_rect.p2[0];	
@@ -347,7 +371,7 @@ var Grapher = function(div, opts) {
 			var zoom_w = Math.abs(that.zoom_rect.p1[0] - that.zoom_rect.p2[0]);
 			var zoom_h = Math.abs(that.zoom_rect.p1[1] - that.zoom_rect.p2[1]);
 			if (that.autoscale) {
-				that.edaContainer.select("rect.zoomrect")
+				that.datasourceContainer.select("rect.zoomrect")
 					.attr("x", x)
 					.attr("y", 0)
 					.attr("width", zoom_w)
@@ -355,7 +379,7 @@ var Grapher = function(div, opts) {
 				
 			}
 			else {
-				that.edaContainer.select("rect.zoomrect")
+				that.datasourceContainer.select("rect.zoomrect")
 					.attr("x", x)
 					.attr("y", y)
 					.attr("width", zoom_w)
@@ -368,10 +392,10 @@ var Grapher = function(div, opts) {
 	}
 	
 	this.zoom = function(start, end, type) {
-		var bounds = that.edaContainer[0][0].getBoundingClientRect();
+		var bounds = that.datasourceContainer[0][0].getBoundingClientRect();
 		//console.log("Bounds: ");
 		//console.log(bounds);
-		if(!((start == that.eda.startTime) && (end == that.eda.endTime)) && $("button.clearButton").length == 0){
+		if(!((start == that.datasource.startTime) && (end == that.datasource.endTime))){
 			$(that.container).append(
 				$("<button>")
 					.addClass("btn")
@@ -383,9 +407,9 @@ var Grapher = function(div, opts) {
 					.html("<i class='icon-zoom-out'></i> Zoom Out")
 					.on("click", function(e) {
 						$("button.clearButton").remove();
-						that.updateEDA("full");
+						that.renderUpdate("full");
 						if(that.onzoom != undefined){
-							that.onzoom(that.eda.startTime, that.eda.endTime, "zoomout");
+							that.onzoom(that.datasource.startTime, that.datasource.endTime, "zoomout");
 						}
 						return false;
 					})
@@ -407,38 +431,39 @@ var Grapher = function(div, opts) {
 			//console.log("Start=" +start + " End=" + end);
 			var range = {};
 			if(start) {
-				range.xmin = int(that.eda.offsetForTime(start));
+				range.xmin = int(that.datasource.offsetForTime(start));
 			}
 			else {
-				range.xmin = int(that.eda.x(xmin));
+				range.xmin = int(that.datasource.x(xmin));
 			}
 			if(isNaN(range.xmin) || (range.xmin < 0)) range.xmin = 0;
 			
 			if(end) {
-				range.xmax = int(that.eda.offsetForTime(end));
+				range.xmax = int(that.datasource.offsetForTime(end));
 			}
 			else {
-				range.xmax = int(that.eda.x(xmax));
+				range.xmax = int(that.datasource.x(xmax));
 			}
-			if(isNaN(range.xmax) || (range.xmax > that.eda.offsetForTime(that.eda.endTime))) range.xmax = that.eda.data["EDA"].length-1;
+			if(isNaN(range.xmax) || (range.xmax > that.datasource.offsetForTime(that.datasource.endTime))) range.xmax = that.channels.map(function(c){return that.datasource.data[c].length;}).min();
+			;
 			
-			range.ymin = that.eda.y(ymax) || 0; //Note switched since height is measured from top left
-			range.ymax = that.eda.y(ymin) || 1; //Note switched since height is measured from top left
-			console.log("Before onzoom with Start=" +that.eda.timeForOffset(range.xmin) + " End=" + that.eda.timeForOffset(range.xmax));
-			that.updateEDA(range);
+			range.ymin = that.datasource.y(ymax) || 0; //Note switched since height is measured from top left
+			range.ymax = that.datasource.y(ymin) || 1; //Note switched since height is measured from top left
+			console.log("Before onzoom with Start=" +that.datasource.timeForOffset(range.xmin) + " End=" + that.datasource.timeForOffset(range.xmax));
+			that.renderUpdate(range);
 		}
 		else {
 			that.updateSVG(that.data.slice(xmin, xmax));
 		}
 		//console.log(that.onzoom);
 		if((that.onzoom != undefined) && ((start == undefined) && (end == undefined))){
-			that.onzoom(that.eda.timeForOffset(range.xmin), that.eda.timeForOffset(range.xmax));
+			that.onzoom(that.datasource.timeForOffset(range.xmin), that.datasource.timeForOffset(range.xmax));
 		}
 	};
 	
 	this.mouseup = function() {
-		that.edaContainer.on("mousemove", null);
-		that.edaContainer.select("rect.zoomrect").remove();
+		that.datasourceContainer.on("mousemove", null);
+		that.datasourceContainer.select("rect.zoomrect").remove();
 		var zoom_w = Math.abs(that.zoom_rect.p1[0] - that.zoom_rect.p2[0]);
 		var zoom_h = Math.abs(that.zoom_rect.p1[1] - that.zoom_rect.p2[1]);
 		
@@ -449,52 +474,55 @@ var Grapher = function(div, opts) {
 	
 	this.updateCursor = function(time) {
 		//console.log(time);
-		var offset = that.eda.offsetForTime(time);
-		//console.log("EDA offset for cursor: " + offset +" transformed: " + that.eda.x.invert(offset) );
-		that.edaContainer.selectAll("line.cursor").remove();
-		that.edaContainer.append("svg:line")
+		var offset = that.datasource.offsetForTime(time);
+		//console.log("EDA offset for cursor: " + offset +" transformed: " + that.datasource.x.invert(offset) );
+		that.datasourceContainer.selectAll("line.cursor").remove();
+		that.datasourceContainer.append("svg:line")
 				.attr("class", "cursor")
 				.style("stroke", "red")
 				.style("stroke-width", "3")
 				.attr("y1", 0)
 				.attr("y2", that.h)
-				.attr("x1", that.eda.x.invert(offset))
-				.attr("x2", that.eda.x.invert(offset));
+				.attr("x1", that.datasource.x.invert(offset))
+				.attr("x2", that.datasource.x.invert(offset));
 	
 	};
 	
-	this.updateEDA = function(range) {
+	this.renderUpdate = function(range) {
 		if(range == "full" || range == undefined || range == null){
 			var range = {};
 			range.xmin = 0;
-			range.xmax = that.eda.data.EDA.length - 1;
-			range.ymin = that.eda.data.EDA.min();
-			range.ymax = that.eda.data.EDA.max();
+			range.xmax = that.channels.map(function(c){return that.datasource.data[c].length;}).min()-1;
+			range.ymin = that.channels.map(function(c){return that.datasource.data[c].min();}).min();
+			range.ymax = that.channels.map(function(c){return that.datasource.data[c].max();}).max();
 		}
 		localStorage.range = range;
-		var channel = range.channel || that.channel;
 
-		that.eda.x = d3.scale.linear().domain([0, that.w]).range([range.xmin, range.xmax]);
-		that.eda.y = d3.scale.linear().domain([0, that.h]).range([range.ymax, range.ymin]);
+		that.datasource.x = d3.scale.linear().domain([0, that.w]).range([range.xmin, range.xmax]);
+		that.datasource.y = d3.scale.linear().domain([0, that.h]).range([range.ymax, range.ymin]);
 		var target_points = ((range.xmax - range.xmin) > that.w) ? that.w : (range.xmax - range.xmin);
 		
-		that.eda.getDataForOffsetRange(channel, range.xmin, range.xmax, target_points, that.updateSVG);
+		that.datasource.getMultiChannelDataForOffsetRange(that.channels, range.xmin, range.xmax, target_points, that.updateSVG);
 		
 	
 	};
 	
 	this.updateSVG = function(data) {
-		var x = d3.scale.linear().domain([0, data.length]).range([0, that.w]);
-		if(that.eda.y && !that.autoscale){
-			//console.log("EDA Range: " + that.eda.y.range() + " | Data: " + data.min() + " to " + data.max());
-			var yrange = [ that.eda.y.range()[1], that.eda.y.range()[0] ];
+		console.log("Updating SVG");
+		//Fix for weird array bug
+		if(data.length > that.channels.length){
+			console.log("It's happening again..");
+			data = data.slice(1,data.length-1);
+		}
+		console.log(data);
+		var x = d3.scale.linear().domain([0, data.map(function(d){return d.length}).max()]).range([0, that.w]);
+		if(that.datasource.y && !that.autoscale){
+			var yrange = [ that.datasource.y.range()[1], that.datasource.y.range()[0] ];
 			var y = d3.scale.linear().domain(yrange).range([that.h, 0]);
 		}
 		else {
-			var y = d3.scale.linear().domain([data.min(),data.max()]).range([that.h, 0]);
+			var y = d3.scale.linear().domain([data.map(function(d){return d.min();}).min(),data.map(function(d){return d.max();}).max()]).range([that.h, 0]);
 		}
-		data.unshift(0.0);
-		data.push(0.0);
 		
 		that.x = x;
 		that.y = y;
@@ -502,17 +530,22 @@ var Grapher = function(div, opts) {
 		    .x(function(d,i) { return x(i); })
 		    .y(function(d) { return  y(d); });
 		that.data = data;
-		that.renderGrid(that.edaContainer, x, y);
-				
-		that.edaContainer.select("#EDA").transition(500)
-			.attr("d", line(data));
-		that.edaContainer.selectAll(".marker")
+		that.renderGrid(that.datasourceContainer, x, y);
+		for (var i = 0; i < that.channels.length; i++) {
+			data[i].unshift(0.0);
+			data[i].push(0.0);
+			
+			console.log("Updating Data for " + that.channels[i]);
+			that.datasourceContainer.select("#" + that.channels[i]).transition(500)
+				.attr("d", line(data[i]));
+		}
+		that.datasourceContainer.selectAll(".marker")
 			.transition()
 			.duration(500)
-			.attr("cx", function(d) {return that.eda.x.invert(d);})
+			.attr("cx", function(d) {return that.datasource.x.invert(d.index);})
 			.style("opacity", function(d) {
-				var x = Math.round(that.eda.x.invert(d));
-				if (x < that.data.length && x >= 0) {
+				var x = Math.round(that.datasource.x.invert(d.index));
+				if (x < that.data[0].length && x >= 0) {
 					return 1.0;
 				}
 				else {
@@ -520,7 +553,7 @@ var Grapher = function(div, opts) {
 				}
 			})
 			.attr("cy", function(d) {
-				var x = Math.round(that.eda.x.invert(d));
+				var x = Math.round(that.datasource.x.invert(d.index));
 				if (x < that.data.length && x >= 0) {
 					return that.y(that.data[x]);
 					
@@ -577,7 +610,7 @@ var Grapher = function(div, opts) {
 		     .attr("y", h+10)
 		     .attr("dy", ".35em")
 		     .attr("text-anchor", "middle")
-		 	 .text(function(d,i) {return that.eda.timeForOffset(that.eda.x(d)).shortString();});
+		 	 .text(function(d,i) {return that.datasource.timeForOffset(that.datasource.x(d)).shortString();});
 		 
 		 //Now do the vertical lines and labels
 		 
@@ -602,7 +635,19 @@ var Grapher = function(div, opts) {
 		     .attr("text-anchor", "end")
 		 	.text(function(d,i) {return d.toFixed(2).toString()});
 		 //Now go add axis labels
-		 that.edaContainer.selectAll("text.axis-label").remove();
+		 that.datasourceContainer.selectAll("text.axis-label").remove();
+		 var label = "";
+		 for (var i = 0; i < 1; i++) {
+		 		if (i > 0) {
+		 			label += " | " + that.channels[i];
+		 		}
+		 		else {
+		 			label = that.channels[i];
+		 		}
+		 		if (that.units.hasOwnProperty(that.channels[i])) {
+		 			label += " (" + that.units[that.channels[i]] + ")";
+		 		}
+		 }
 		 edaContainer.append("svg:text")
 		 	.attr("class", "axis-label")
 		 	.attr("x", 0)
@@ -611,8 +656,9 @@ var Grapher = function(div, opts) {
 		 	.attr("dx", "-"+p+"px")
 		 	.attr("text-anchor", "middle")
 		 	.attr("transform", "rotate(-90, " + -that.p + ", " + h/2 + ")")
-		 	.text("EDA (" + "\u03BC"  + "S)");
-		 that.edaContainer.selectAll("text.title").remove();
+		 	.text(label);
+		 
+		 		 that.datasourceContainer.selectAll("text.title").remove();
 		 edaContainer.append("svg:text")
 		 	.attr("class", "title")
 		 	.attr("x", w/2)
@@ -620,7 +666,7 @@ var Grapher = function(div, opts) {
 		 	.attr("dy", "-"+p/4+"px")
 		 	.attr("dx", 0)
 		 	.attr("text-anchor", "middle")
-		 	.text(that.eda.filename);	
+		 	.text(that.datasource.filename);	
 		 
 	}
 	
