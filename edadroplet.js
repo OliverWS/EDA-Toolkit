@@ -5,8 +5,7 @@ var EDADroplet = function(id, callback, opts) {
 	that.extension = opts.extension || "eda";
 	that.callback = callback;
 	that.edaFile = new qLogFile();
-	that.edaFile.progress = "progress-indicator" ;
-	
+	that.edaFile.progress = "progress-indicator-" + parseInt(Math.random()*10000, 10) ;	
 	that.draw = function(points) {	
 	};
 	that.graph = function(dat) {

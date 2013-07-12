@@ -1,7 +1,7 @@
 
 var qLogFile =  function () {
 	var that = this;
-	this.worker = new Worker("js/eda_toolkit.worker.js");
+	this.worker = new Worker("js/lib/eda_toolkit.worker.js");
 	that.isEDAFile = true;
 	that.didAlreadyLoad = false;
 	that.filename = "EDA File";
@@ -166,33 +166,65 @@ var qLogFile =  function () {
 	
 	this.offsetForTime = function(time) {
 		var diff = time.sub(this.startTime);
-		if(diff.valueOf() > 0 && diff.valueOf() < this.duration.valueOf()) {
+		if(diff.valueOf() >= 0 && diff.valueOf() <= this.duration.valueOf()) {
 			return Math.round( diff.valueOf()/(1000.0/this.sampleRate) );
 		
 		}
 		else {
-			return NaN;
+			throw "Illegal Time: " + time +". Time must be between " + this.startTime + " and " + this.endTime;
 		}
 		
 	};
 	
 	this.timeForOffset = function(offset) {
 		var offsetMilliseconds = offset*(1000.0/this.sampleRate);
-		if((offsetMilliseconds >= 0 && offsetMilliseconds) < this.duration.valueOf()) {
+		if((offsetMilliseconds >= 0) && (offsetMilliseconds < this.duration.valueOf())) {
 			return this.startTime.add(TimeDelta(offsetMilliseconds));
 		
 		}
 		else {
-			return NaN;
+			throw "Illegal Offset: " + offset +". Offset must be between " + 0 + " and " + this.data.EDA.length-1;
 		}
 		
+	};
+	this.get = function(callback, opts) {
+		var opts = opts || {};
+		var start = opts.start || this.timeForOffset(0);
+		var end = opts.end || this.timeForOffset(that.data.EDA.length - 1);
+		var channels = opts.channels || ["EDA","X","Y","Z"];
+		var targetSamples = opts.targetSamples || (this.offsetForTime(end) - this.offsetForTime(start));
+		console.log("start: " + start + "("+this.offsetForTime(start)+") \n end: "+ end + "("+this.offsetForTime(end)+") \n targetSamples: " + targetSamples);  
+		that.getMultiChannelDataForOffsetRange(channels, this.offsetForTime(start), this.offsetForTime(end), targetSamples, 
+		  function(data) {
+		    console.log(data);
+		    var combinedData = new Array();
+		    var timesteps = np.timeRange(start,end,targetSamples);
+		    for (var i = 0; i < data[0].length; i++) {
+		      var sample = {};
+		      for(var c=0; c < channels.length; c++){
+		        sample[channels[c]] = data[c][i];
+		      }
+		      sample["time"] = timesteps[i];
+		      combinedData.push(sample);
+		    }
+		    callback(combinedData);
+		  
+		  });
+		
+	  
 	};
 	
 	this.getData = function(channel, targetSamples, callback) {
 		var points = that.data[channel];
 		if (targetSamples) {
-			that.callback = callback;
-			this.worker.postMessage({cmd:"downsample", data:{"points":points, target:targetSamples}});
+			var token = (Math.random()*10).toString();
+			that.callbacks[token] = callback;
+			if(targetSamples > 0){
+			  this.worker.postMessage({cmd:"downsampleMultiChannel", "data":{"points":data, target:targetSamples,key:token}});
+			}
+			else {
+			  throw "Target Samples Error: target samples must be greater than 0 and less than " + this.data.length +", not " + targetSamples;
+			}
 		}
 		else {
 			return points;

@@ -54,13 +54,13 @@ self.parse = function(text) {
 	var headers = headerPlusBody[0].split("\n");
 	var parsedHeaders = self.parseHeaders(headers);	
 	if(parsedHeaders["File Version"] < 1.1) {
-		self.parseTextData(headerPlusBody[1], ["Z","Y","X","Batt","Temperature","EDA"]);
+		self.parseTextData(headerPlusBody[1], ["Z","Y","X","Battery","Temperature","EDA"]);
 	}
 	else if((parsedHeaders["File Version"] < 1.5) && (parsedHeaders["File Version"] > 1.09)) {
 		self.parseTextData(headerPlusBody[1], parsedHeaders["Column Names"]);
 	}
 	else {
-		self.parseBinaryData(headerPlusBody[1], ["Z","Y","X","Batt","Temperature","EDA"]);
+		self.parseBinaryData(headerPlusBody[1], ["Z","Y","X","Battery","Temperature","EDA"]);
 	}
 }
 
@@ -98,6 +98,9 @@ self.parseHeaders = function(metadata) {
 						break;
 					case "EDA(uS)":
 						colNames[i] = "EDA";
+						break;
+					case "�Celsius":
+						colNames[i] = "Temperature";
 						break;
 					default:
 						//Do nothing
@@ -166,14 +169,14 @@ self.downsample = function(opts) {
 	
 	//start with naive downsampling;
 	var downsampled = [];
-	var inc = Math.floor(data.length/target);
+	var inc = Math.ceil(data.length/target);
 	console.log("Data length: " + data.length + " Target: " + target + " so increment is " + inc);
 	if(data.length <= target){
 		downsampled = data;
 	}
 	else {
 		//var data = signals.medianFilter(data,inc);
-		var data = gaussianFilter(data, inc, 20);
+		var data = gaussianFilter(data, int(inc), 20);
 		
 		for(var n=0; n < data.length; n+= inc) {
 			downsampled.push(data[n]);
@@ -202,7 +205,7 @@ self.downsampleMultiChannel = function(opts) {
 		}
 		else {
 			//var data = signals.medianFilter(data,inc);
-			var data = gaussianFilter(data, inc, 20);
+			//var data = gaussianFilter(data, int(inc), 20);
 			
 			for(var n=0; n < data.length; n+= inc) {
 				downsampled.push(data[n]);
@@ -365,10 +368,17 @@ self.parseBinaryData = function(body, columnHeaders) {
 
 self.get = function(url, callback) {
 	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.responseType = 'arraybuffer';
 	xmlhttp.open("GET",url,false);
 	xmlhttp.send();
-	var text = xmlhttp.responseText;
-	
-	self.parse( text );
-	
+	var uInt8Array = new Uint8Array(xmlhttp.response);
+	var i = uInt8Array.length;
+	var binaryString = new Array(i);
+	while (i--)
+	{
+	  binaryString[i] = String.fromCharCode(uInt8Array[i]);
+	}
+	var data = binaryString.join('');
+	self.parse( data );
+	console.log(data);	
 };
