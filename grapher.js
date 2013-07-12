@@ -42,7 +42,9 @@ var Grapher = function(div, opts) {
 	}
 	this.width = $(div).width();
 	this.height = $(div).height();
-	this.plot = function(data) {
+	this.plot = function(data, callback) {
+		if(callback) that.readyCallback = callback;
+		
 		if(that.spinner) {
 		}
 		else {
