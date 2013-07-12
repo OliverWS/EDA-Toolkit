@@ -305,6 +305,10 @@ var Grapher = function(div, opts) {
 			
 			}
 		}
+		if(that.readyCallback && !that.didLoad){
+		   that.didLoad = true;
+		   that.readyCallback(that);
+		}
 		
 	
 	};
