@@ -135,7 +135,7 @@ function unpackSigned(data) {
 
 function unpackUnsigned(data) {
 	var dotOffset =  (data >> 14) & 3; //Rotate and mask w/ 0x0003
-	var value = float(data & 1023)/10000.0;
+	var value = float(data & 16383)/10000.0;
 	return truncate(round(value * (pow(10, dotOffset)), 4 - dotOffset), 4 - dotOffset);
 	/*
 	dotOffset =  (data >> 14) & 3 #Rotate and mask w/ 0x0003

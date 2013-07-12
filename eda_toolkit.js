@@ -12,7 +12,7 @@ var qLogFile =  function () {
 		////console.log(event);
 		switch (msg.cmd) {
 		  case 'console':
-		    console.log(msg.msg);
+		    //console.log(msg.msg);
 		    break;
 		  case 'metadata':
 		    that.metadataDidLoad(msg.data);

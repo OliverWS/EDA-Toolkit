@@ -2,7 +2,7 @@
 importScripts("numjs.js");
 importScripts("signals.js");
 //importScripts("https://raw.github.com/eligrey/BlobBuilder.js/master/BlobBuilder.min.js");
-var separator = "---------------------------------------------------------";
+var separator = "---------------------------------------------------------\r\n";
 
 var console = {};
 console.log = function(msg) {
@@ -103,7 +103,9 @@ self.parseHeaders = function(metadata) {
 						colNames[i] = "Temperature";
 						break;
 					default:
-						//Do nothing
+						if (colNames[i].indexOf("Celsius") > -1) {
+							colNames[i] = "Temperature";
+						}
 						break;
 				}
 				if (colNames[i].toLowerCase() != "events") {
@@ -312,7 +314,7 @@ self.parseBinaryData = function(body, columnHeaders) {
 	for(var col=0; col < columnHeaders.length; col++){
 		data[columnHeaders[col]] = [];
 	}
-	
+	body = body.replace(/^\r\n*/g, "");
 	var data_packets = body.split(EOL);
 	//console.log(data_packets);
 	var length = data_packets.length;
@@ -324,6 +326,11 @@ self.parseBinaryData = function(body, columnHeaders) {
 	    try {
 	    	
 	    	var line = data_packets[n];
+	    	if (line.length != 12) {
+	    		console.log(line);
+	    		console.log("Line length: "+ line.length + " at index: " + n  + " of " + length);
+	    		
+	    	}
 	    	//console.log("Line: " + line + " | Length: " + line.length);
 	        // check for blank lines that could occur at EOF and log them
 	        if(line.length == 0) {
@@ -332,7 +339,10 @@ self.parseBinaryData = function(body, columnHeaders) {
 	        }
 	        
 	        var samples = unpackStruct(line);
-	        //console.log(samples);
+			if (line.length != 12) {
+				console.log(samples);
+				
+			}
 	        //# using unrolled loop for speed and code readability
 	        
 	        
@@ -346,7 +356,7 @@ self.parseBinaryData = function(body, columnHeaders) {
 			
 			
 	        if( eda >= 999 && acc_x <= -999.0) {
-	            data.markers.append(index);
+	            data.markers.append(n);
 	        }
 	        else {
 	        	data[columnHeaders[0]].push(acc_z);
@@ -358,6 +368,7 @@ self.parseBinaryData = function(body, columnHeaders) {
 	        }
 		}
 		catch (error) {
+			console.log("Problem while unpacking binary data: " + error);
 			continue;
 		}
 	}
