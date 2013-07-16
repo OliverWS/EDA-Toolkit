@@ -284,9 +284,11 @@ var Grapher = function(div, opts) {
 		}
 		
 		if(that.datasource.events && (that.datasource.events.length > 0)){
-			
+			//Cache event indexes for later use
+			that.eventIdx = [];
 			for (var i = 0; i < that.datasource.events.length; i++) {
 				var d = that.datasource.events[i];
+				that.eventIdx.push(d.index);
 				console.log("Marker at " + d + "(" + that.datasource.x.invert(d.index) + "px in current coordinate space) or " + that.datasource.timeForOffset(d.index).toTimeString());
 				edaContainer.append("circle")
 					.datum(d)
@@ -478,9 +480,13 @@ var Grapher = function(div, opts) {
 		}
 	};
 	
+	
 	this.updateCursor = function(time) {
 		//console.log(time);
 		var offset = that.datasource.offsetForTime(time);
+		
+//		if (that.datasource.events && that.eventIdx && that.eventIdx.find(offset).length > 0) {
+//		}
 		//console.log("EDA offset for cursor: " + offset +" transformed: " + that.datasource.x.invert(offset) );
 		that.datasourceContainer.selectAll("line.cursor").remove();
 		that.datasourceContainer.append("svg:line")
