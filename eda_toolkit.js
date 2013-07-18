@@ -100,7 +100,7 @@ var qLogFile =  function () {
 	this.didLoad = function() {
 		//console.log(this);
 		if(this.callback != undefined){
-			this.callback.call(this);
+			this.callback.call(that);
 		}
 	};
 	

@@ -45,11 +45,16 @@ var Grapher = function(div, opts) {
 	this.plot = function(data, callback) {
 		if(callback) that.readyCallback = callback;
 		
-		if(that.spinner) {
+		try {
+			if(that.spinner) {
+			}
+			else {
+				that.spinner = new Spinner(that.spinOpts).spin(document.getElementById(that.graph[0].id));
+				
+			}
 		}
-		else {
-			that.spinner = new Spinner(that.spinOpts).spin(document.getElementById(that.graph[0].id));
-			
+		catch (error) {
+			console.log("Spinner error: " + error.toString());
 		}
 		if(data != undefined){
 			//console.log(data);
@@ -81,7 +86,9 @@ var Grapher = function(div, opts) {
 		else {
 			//console.log(">>Grapher: Data appears to be undefined!");
 		}
-		that.spinner.stop();
+		if (that.spinner) {
+			that.spinner.stop();
+		}
 	};
 	
 	this.addPicker = function() {
@@ -97,7 +104,7 @@ var Grapher = function(div, opts) {
 //			</div>
 //		</div>
 		var root = $(that.container);
-		$(that.container).prepend($("<div>").addClass("btn-toolbar").addClass("pull-right").append(
+		$(that.container).prepend($("<div>").addClass("btn-toolbar").addClass("pull-right").css("margin-bottom",-50).append(
 			$("<div>").addClass("btn-group").append(
 				$("<a>").attr("class","btn dropdown-toggle").attr("data-toggle","dropdown").attr("href","#").html("Channels\n<span class='caret'></span>")
 			).append(
@@ -106,10 +113,11 @@ var Grapher = function(div, opts) {
 		));
 		
 		$(root).find("#channel-select").empty();
+		$(root).find("#channel-select")
 		var edaFile = that.datasource;
 		edaFile.channels.forEach(function(arg,idx) {
 			if(arg != "length"){
-				$("#channel-select").append($("<li>").html("<a href='#'>" + arg + "</a>"));
+				$(root).find("#channel-select").append($("<li>").html("<a href='#'>" + arg + "</a>"));
 				console.log("Adding channel: " + arg);
 			}
 		
@@ -159,8 +167,13 @@ var Grapher = function(div, opts) {
 	
 	this.renderData = function(eda) {
 		that.datasource = eda;
+		if ((that.datasource.channels.find("Tonic").length > 0) && (that.datasource.channels.find("Phasic").length > 0) ) {
+			console.log("Turning on tonic and phasic since they are present");
+			that.channels = ["EDA","Tonic","Phasic"];
+		}
+		
 		var el = this.container;
-		var p = ($(el).width()/10) < 25 ? ($(el).width()/10) : 25;
+		var p = ($(el).width()/5) < 25 ? ($(el).width()/5) : 25;
 		that.w = $(el).width() - 3*p;
 		that.h = $(el).height() - 2*p;
 		//console.log("Length of eda is: " + that.datasource.data[that.channels[0]].length);
@@ -227,8 +240,9 @@ var Grapher = function(div, opts) {
 		}
 		that.w = w;
 		that.h = h;
+		that.datasource.x.domain([0, data.map(function(d){return d.length}).max()]);
 		//Set x according to the shortest waveform to ensure valid data for whole container
-		var x = d3.scale.linear().domain([0, data.map(function(d) {return d.length}).min()]).range([0, w]);
+		var x = d3.scale.linear().domain([0, that.w]).range([0, w]);
 		if(that.datasource.y && !that.autoscale){
 			//console.log("EDA Range: " + that.datasource.y.range() + " | Data: " + data.min() + " to " + data.max());
 			var yrange = [ that.datasource.y.range()[1], that.datasource.y.range()[0] ];
@@ -293,12 +307,21 @@ var Grapher = function(div, opts) {
 				edaContainer.append("circle")
 					.datum(d)
 					.attr("class","marker")
-					.attr("title", function(d) {return d.comment})
-					.attr("cx", function(d) {return that.datasource.x.invert(d.index);})
-					.attr("cy", function(d) {return that.y(that.data[Math.round(that.datasource.x.invert(d.index))]);})
-					.attr("r", 5)
-					.style("stroke","red")
-					.style("fill","none")
+					.attr("title", function(d) {return d.comment + " | Time: " + that.datasource.timeForOffset(d.index).toTimeString()})
+					.attr("cx", function(d) {return that.x(that.datasource.x.invert(d.index));})
+					.attr("cy", function(d) {
+						var x = Math.round(that.x(that.datasource.x.invert(d.index)));
+						if (x < that.data[that.data.length-1].length && x >= 0) {
+							return that.y(that.data[that.data.length-1][x]);
+							
+						}
+						else {
+							return 0;
+						}
+					})
+					.attr("r", 3)
+					.style("stroke","rgba(200,0,0,1.0)")
+					.style("fill","rgba(200,0,0,0.5)")
 					.style("stroke-width",2);
 				
 				$("circle.marker").tooltip({
@@ -509,7 +532,7 @@ var Grapher = function(div, opts) {
 			range.ymax = that.channels.map(function(c){return that.datasource.data[c].max();}).max();
 		}
 		localStorage.range = range;
-
+		that.range = range;
 		that.datasource.x = d3.scale.linear().domain([0, that.w]).range([range.xmin, range.xmax]);
 		that.datasource.y = d3.scale.linear().domain([0, that.h]).range([range.ymax, range.ymin]);
 		var target_points = ((range.xmax - range.xmin) > that.w) ? that.w : (range.xmax - range.xmin);
@@ -527,6 +550,8 @@ var Grapher = function(div, opts) {
 			data = data.slice(1,data.length-1);
 		}
 		console.log(data);
+		that.datasource.x.domain([0, data.map(function(d){return d.length}).max()]);
+		
 		var x = d3.scale.linear().domain([0, data.map(function(d){return d.length}).max()]).range([0, that.w]);
 		if(that.datasource.y && !that.autoscale){
 			var yrange = [ that.datasource.y.range()[1], that.datasource.y.range()[0] ];
@@ -542,6 +567,7 @@ var Grapher = function(div, opts) {
 		    .x(function(d,i) { return x(i); })
 		    .y(function(d) { return  y(d); });
 		that.data = data;
+		
 		that.renderGrid(that.datasourceContainer, x, y);
 		for (var i = 0; i < that.channels.length; i++) {
 			data[i].unshift(0.0);
@@ -551,13 +577,14 @@ var Grapher = function(div, opts) {
 			that.datasourceContainer.select("#" + that.channels[i]).transition(500)
 				.attr("d", line(data[i]));
 		}
+		
 		that.datasourceContainer.selectAll(".marker")
 			.transition()
 			.duration(500)
-			.attr("cx", function(d) {return that.datasource.x.invert(d.index);})
+			.attr("cx", function(d) {return that.x(that.datasource.x.invert(d.index));})
 			.style("opacity", function(d) {
-				var x = Math.round(that.datasource.x.invert(d.index));
-				if (x < that.data[0].length && x >= 0) {
+				var x = Math.round(that.x(that.datasource.x.invert(d.index)));
+				if (x < that.data[that.data.length-1].length && x >= 0) {
 					return 1.0;
 				}
 				else {
@@ -566,8 +593,8 @@ var Grapher = function(div, opts) {
 			})
 			.attr("cy", function(d) {
 				var x = Math.round(that.datasource.x.invert(d.index));
-				if (x < that.data.length && x >= 0) {
-					return that.y(that.data[x]);
+				if (x < that.data[that.data.length-1].length && x >= 0) {
+					return y(that.data[that.data.length-1][x]);
 					
 				}
 				else {

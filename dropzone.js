@@ -2,7 +2,7 @@ var Dropzone = function(el,callback,opts) {
 	var that = this;
 	var opts = opts || {};
 	that.active = true;
-	that.allowFolders = opts.allowFolders || false;
+	that.allowFolders = opts.allowFolders || true;
 	that.width = (opts.width || $("#"+el).width()) || 300;
 	that.height = (opts.height || $("#"+el).height()) || that.width;
 	that.autoremove = opts.autoremove || true;
@@ -41,8 +41,16 @@ var Dropzone = function(el,callback,opts) {
 		if(that.allowFolders){
 			var entry = e.dataTransfer.items[0].webkitGetAsEntry();
 			if(entry.isDirectory){
-				window.entry = entry;
-				that.callback(entry);
+				that.traverseFileTree(entry);
+				that.callback({},true);			
+				if(that.autoremove){
+					that.remove();
+				}
+			}
+			else {
+				var file = e.dataTransfer.files[0];
+			
+				that.callback(file);
 				if(that.autoremove){
 					that.remove();
 				}
@@ -55,8 +63,28 @@ var Dropzone = function(el,callback,opts) {
 			if(that.autoremove){
 				that.remove();
 			}
+
 		}
 	};
+	
+	that.traverseFileTree = function(item, path) {
+	  path = path || "";
+	  if (item.isFile && item.name[0] != ".") {
+	    // Get file
+	    item.file(function(file) {
+	      that.callback(file);
+	    });
+	  } else if (item.isDirectory && item.name[0] != ".") {
+	    // Get folder contents
+	    var dirReader = item.createReader();
+	    dirReader.readEntries(function(entries) {
+	      for (var i=0; i<entries.length; i++) {
+	        that.traverseFileTree(entries[i], path + item.name + "/");
+	      }
+	    });
+	  }
+	}
+	
 	that.dropzone = dropzone;
 	that.remove = function() {
 		$(dropzone).find("h1").remove();
