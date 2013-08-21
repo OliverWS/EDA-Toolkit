@@ -166,9 +166,12 @@ var qLogFile =  function () {
 	
 	this.offsetForTime = function(time) {
 		var diff = time.sub(this.startTime);
-		if(diff.valueOf() >= 0 && diff.valueOf() <= this.duration.valueOf()) {
+		if(diff.valueOf() >= 0 && diff.valueOf() < this.duration.valueOf()) {
 			return Math.round( diff.valueOf()/(1000.0/this.sampleRate) );
 		
+		}
+		else if (diff.valueOf() >= 0 && diff.valueOf() == this.duration.valueOf()) {
+			return this.data.length-1;
 		}
 		else {
 			throw "Illegal Time: " + time +". Time must be between " + this.startTime + " and " + this.endTime;
@@ -182,8 +185,11 @@ var qLogFile =  function () {
 			return this.startTime.add(TimeDelta(offsetMilliseconds));
 		
 		}
+		else if ((offsetMilliseconds >= 0) && (offsetMilliseconds == this.duration.valueOf())) {
+			return this.endTime;
+		}
 		else {
-			throw "Illegal Offset: " + offset +". Offset must be between " + 0 + " and " + this.data.EDA.length-1;
+			throw "Illegal Offset: " + offset +". Offset must be between " + 0 + " and " + this.data.length-1;
 		}
 		
 	};

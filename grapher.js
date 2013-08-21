@@ -456,7 +456,7 @@ var Grapher = function(div, opts) {
 		var bounds = that.datasourceContainer[0][0].getBoundingClientRect();
 		//console.log("Bounds: ");
 		//console.log(bounds);
-		if(!((start == that.datasource.startTime) && (end == that.datasource.endTime))){
+		if(!((start <= that.datasource.startTime) && (end >= that.datasource.endTime))){
 			$(that.container).append(
 				$("<button>")
 					.addClass("btn")
@@ -490,6 +490,17 @@ var Grapher = function(div, opts) {
 		}
 		if(that.isEDA) {
 			//console.log("Start=" +start + " End=" + end);
+			//validate input
+			if (start < that.datasource.startTime) {
+				start = that.datasource.startTime;
+				console.log("Got start time: " + start + " that was earlier than EDA start time: " + that.datasource.startTime);
+			}
+			if (end > that.datasource.endTime) {
+				end = that.datasource.endTime.sub(TimeDelta(1));
+				console.log("Got end time: " + end + " that was later than EDA end time: " + that.datasource.endTime);
+			}
+			
+			
 			var range = {};
 			if(start) {
 				range.xmin = int(that.datasource.offsetForTime(start));
@@ -505,8 +516,9 @@ var Grapher = function(div, opts) {
 			else {
 				range.xmax = int(that.datasource.x(xmax));
 			}
-			if(isNaN(range.xmax) || (range.xmax > that.datasource.offsetForTime(that.datasource.endTime))) range.xmax = that.channels.map(function(c){return that.datasource.data[c].length;}).min();
-			;
+			if(isNaN(range.xmax) || (range.xmax > that.datasource.offsetForTime(that.datasource.endTime))){
+				range.xmax = that.channels.map(function(c){return that.datasource.data[c].length;}).min();
+			}
 			
 			range.ymin = that.datasource.y(ymax) || 0; //Note switched since height is measured from top left
 			range.ymax = that.datasource.y(ymin) || 1; //Note switched since height is measured from top left
