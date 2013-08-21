@@ -76,13 +76,14 @@ self.parseHeaders = function(metadata) {
 				headers[property] = value.autoconvert();
 			}
 		}
-		else if(row.indexOf(" | ") > -1){
+		else if(row.indexOf("|") > -1){
 			//Now parse out the channels directly
 			//" Z-axis | Y-axis | X-axis | Battery | °Celsius | EDA(uS) "
 			colNames = row.replace(/^\s*|\s*$/g, "");
-			colNames = colNames.split(" | ");
+			colNames = colNames.split("|");
 			console.log("Column Names: " + colNames);
 			for (var i = 0; i < colNames.length; i++) {
+				colNames[i] = colNames[i].replace(/^\s*|\s*$/g, "")
 				switch (colNames[i]) {
 					case "Z-axis":
 						colNames[i] = "Z";

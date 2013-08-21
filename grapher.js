@@ -5,6 +5,7 @@ var Grapher = function(div, opts) {
 	this.opts = opts || {};
 	this.channels = this.opts.channel || ["EDA"];
 	this.autoscale = this.opts.autoscale || true;
+	that.showAcc = false;
 	this.units = {
 		"EDA": "\u03BC" + "S",
 		"X" : "gs",
@@ -193,6 +194,7 @@ var Grapher = function(div, opts) {
 	
 	this.setChannels = function(channels) {
 		var validChannels = [];
+		
 		for (var i = 0; i < channels.length; i++) {
 			var c = channels[i];
 			if (that.datasource.data.hasOwnProperty(c)) {
@@ -217,6 +219,12 @@ var Grapher = function(div, opts) {
 		}
 		
 		that.channels = validChannels;
+		if (that.channels.find("X") > -1 || that.channels.find("Y") > -1 || that.channels.find("Z") > -1) {
+			//that.showAcc = true;
+		}
+		else {
+			that.showAcc = false;
+		}
 		that.renderUpdate();
 		
 	};
@@ -226,7 +234,7 @@ var Grapher = function(div, opts) {
 		that.data = data;
 		//console.log(data);
 		//console.log("Rendering svg for " + data.length + " points");
-		var p,w,h,el, edaContainer, line;
+		var p,w,h,el, edaContainer, line,lineAcc,y2;
 		el = that.container;
 		p = ($(el).width()/10) < 50 ? ($(el).width()/10) : 50;
 		that.p = p;
@@ -252,19 +260,29 @@ var Grapher = function(div, opts) {
 			var y = d3.scale.linear().domain([data.map(function(d) {return d.min();}).min(),data.map(function(d) {return d.max();}).max()]).range([that.h, 0]);
 		}
 		
-		that.x = x;
-		that.y = y;
-		/*
-		time = function(i) {
-			var t = new Date(data.startTime);
-			t.setTime(t.getTime() + i*data.fps*1000);
-			return t.toLocaleTimeString();
-		};
-		*/
-		
+		if (that.showAcc) {
+			y = y.range([that.h*(2.0/3.0), 0]);
+			var accData = [];
+			for (var i = 0; i < that.channels.length; i++) {
+				if (that.channels[i] == "X" || that.channels[i] == "Y" || that.channels[i] == "Z") {
+					accData.push(that.data[i]);
+				}
+			}
+			
+			y2 = d3.scale.linear().domain([accData.map(function(d) {return d.min();}).min(),accData.map(function(d) {return d.max();}).max()]).range([that.h*(2.0/3.0), that.height]);
+			lineAcc = d3.svg.line()
+			    .x(function(d,i) { return x(i); })
+			    .y(function(d) { return  y2(d); });
+			
+		}
 		line = d3.svg.line()
 		    .x(function(d,i) { return x(i); })
 		    .y(function(d) { return  y(d); });
+		
+		that.x = x;
+		that.y = y;
+		that.y2 = y2;
+		that.lineAcc = lineAcc;
 		that.svg = d3.select(el)
 		  .append("svg")
 		  	.attr("class","graph")
@@ -289,12 +307,20 @@ var Grapher = function(div, opts) {
 		for (var i = 0; i < that.channels.length; i++) {
 			data[i].unshift(0.0);
 			data[i].push(0.0);
-		
-			edaContainer.append("path")
-				.attr("d", line(data[i]))
-			    .attr("class", that.channels[i].toLowerCase())
-			    .attr("clip-path", "url(#edaclip)")
-			    .attr("id",that.channels[i]);
+			if ((that.channels[i] == "X" || that.channels[i] == "Y" || that.channels[i] == "Z") && that.showAcc) {
+				edaContainer.append("path")
+					.attr("d", that.lineAcc(data[i]))
+				    .attr("class", that.channels[i].toLowerCase())
+				    .attr("clip-path", "url(#edaclip)")
+				    .attr("id",that.channels[i]);
+			}
+			else {
+				edaContainer.append("path")
+					.attr("d", line(data[i]))
+				    .attr("class", that.channels[i].toLowerCase())
+				    .attr("clip-path", "url(#edaclip)")
+				    .attr("id",that.channels[i]);
+			}
 		}
 		
 		if(that.datasource.events && (that.datasource.events.length > 0)){
@@ -433,7 +459,7 @@ var Grapher = function(div, opts) {
 					.addClass("clearButton")
 					.css("display","block")
 					.css("position","absolute")
-					.css("left", bounds.left + bounds.width - 2*that.p - 10)
+					.css("left", $(that.container).width() - 20 - 108/2)
 					.css("top",bounds.top + scrollY + that.p + 10)
 					.html("<i class='icon-zoom-out'></i> Zoom Out")
 					.on("click", function(e) {
@@ -561,8 +587,24 @@ var Grapher = function(div, opts) {
 			var y = d3.scale.linear().domain([data.map(function(d){return d.min();}).min(),data.map(function(d){return d.max();}).max()]).range([that.h, 0]);
 		}
 		
+		if (that.showAcc) {
+			y = y.range([that.h*(2.0/3.0), 0]);
+			var accData = [];
+			for (var i = 0; i < that.channels.length; i++) {
+				if (that.channels[i] == "X" || that.channels[i] == "Y" || that.channels[i] == "Z") {
+					accData.push(that.data[i]);
+				}
+			}
+			
+			var y2 = d3.scale.linear().domain([accData.map(function(d) {return d.min();}).min(),accData.map(function(d) {return d.max();}).max()]).range([that.h*(2.0/3.0), that.height]);
+			var 	lineAcc = d3.svg.line()
+			    .x(function(d,i) { return x(i); })
+			    .y(function(d) { return  y2(d); });
+			
+		}
 		that.x = x;
 		that.y = y;
+		
 		var line = d3.svg.line()
 		    .x(function(d,i) { return x(i); })
 		    .y(function(d) { return  y(d); });

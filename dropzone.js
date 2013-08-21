@@ -41,6 +41,9 @@ var Dropzone = function(el,callback,opts) {
 		if(that.allowFolders){
 			var entry = e.dataTransfer.items[0].webkitGetAsEntry();
 			if(entry.isDirectory){
+				if (document.getElementById("foldername")) {
+					document.getElementById("foldername").innerHTML = entry.name ;
+				}
 				that.traverseFileTree(entry);
 				that.callback({},true);			
 				if(that.autoremove){

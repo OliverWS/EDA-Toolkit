@@ -46,6 +46,8 @@ var FolderDroplet = function(id, callback, opts) {
 		  	grapher.plot(edaFile);
 		  	
 		  	that.graphs.push(grapher);
+		  	that.callback(that.graphs);
+		  	
 		  	
 		  
 		  }
@@ -160,7 +162,7 @@ var FolderDroplet = function(id, callback, opts) {
 		function (file, isDone) {
 			  if(isDone){
 			  	setTimeout(that.setupHandlers, 200);
-			  	that.callback(that.edaFiles, that.videoFiles);
+			  	that.callback(that.graphs);
 			  	return;
 			  }
 			  console.log(file);
