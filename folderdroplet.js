@@ -151,6 +151,8 @@ var FolderDroplet = function(id, callback, opts) {
 			var player = this;
 			console.log("Video loaded!");
 			player.size(that.vsize.width,that.vsize.height);
+			
+//			$("#"+vidid).append("<div><input id='timepicker' type='text' class='input-small'><span class='add-on'><i class='glyphicon glyphicon-time'></i></span></div>");		
 			that.videoFiles.push(player);
 		});
 	
@@ -202,9 +204,11 @@ var Loader = function(id, progressId) {
 		$("<div>").addClass("loader")
 			.append($("<h2>").text("Loading..."))
 			.append($("<div>").attr("id", progressId).attr("class","progress progress-striped active")
-				.append($("<div>").addClass("bar").attr("style", "width: 0%;"))
+				.append($("<div>").addClass("progress-bar").attr("role","progressbar").attr("style", "width: 0%;"))
 			)
 	);
+	//  <div class="progress-bar"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 45%">
+	
 	var offset = ($(id).height() - $(id).find(".loader").height()  - $(id).find("h2").height())/2.0;
 	$(id).find(".loader").css("margin-top",offset);
 };

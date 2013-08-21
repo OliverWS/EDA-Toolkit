@@ -93,23 +93,27 @@ var Grapher = function(div, opts) {
 	};
 	
 	this.addPicker = function() {
-//		<div class="btn-toolbar">
-//			<div class="btn-group">
-//			  <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-//			    Action
-//			    <span class="caret"></span>
-//			  </a>
-//			  <ul class="dropdown-menu" id="channel-select">
-//			    
-//			  </ul>
-//			</div>
-//		</div>
+
+//<div class="btn-group">
+//  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+//    Action <span class="caret"></span>
+//  </button>
+//  <ul class="dropdown-menu" role="menu">
+//    <li><a href="#">Action</a></li>
+//    <li><a href="#">Another action</a></li>
+//    <li><a href="#">Something else here</a></li>
+//    <li class="divider"></li>
+//    <li><a href="#">Separated link</a></li>
+//  </ul>
+//</div>
+
 		var root = $(that.container);
+		
 		$(that.container).prepend($("<div>").addClass("btn-toolbar").addClass("pull-right").css("margin-bottom",-50).append(
 			$("<div>").addClass("btn-group").append(
-				$("<a>").attr("class","btn dropdown-toggle").attr("data-toggle","dropdown").attr("href","#").html("Channels\n<span class='caret'></span>")
+				$("<button>").attr("class","btn dropdown-toggle").attr("data-toggle","dropdown").attr("href","#").html("Channels\n<span class='caret'></span>")
 			).append(
-				$("<ul>").addClass("dropdown-menu").attr("id","channel-select")
+				$("<ul>").addClass("dropdown-menu").attr("id","channel-select").attr("role","menu")
 			)
 		));
 		
@@ -459,9 +463,9 @@ var Grapher = function(div, opts) {
 					.addClass("clearButton")
 					.css("display","block")
 					.css("position","absolute")
-					.css("left", $(that.container).width() - 20 - 108/2)
+					.css("left", $(that.container).width() - 44 - 108/2)
 					.css("top",bounds.top + scrollY + that.p + 10)
-					.html("<i class='icon-zoom-out'></i> Zoom Out")
+					.html("<i class='glyphicon glyphicon-zoom-out'></i> Zoom Out")
 					.on("click", function(e) {
 						$("button.clearButton").remove();
 						that.renderUpdate("full");

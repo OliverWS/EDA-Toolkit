@@ -89,7 +89,7 @@ var qLogFile =  function () {
 	
 	this.updateProgress = function(progress) {
 		if(this.progress != undefined) {
-			$("#" + this.progress).find("div.bar").css("width", Math.round(progress) + "%");
+			$("#" + this.progress).find("div.progress-bar").css("width", Math.round(progress) + "%");
 		}
 		else {
 			//console.log("Progress: " + Math.round(progress) + "%");
