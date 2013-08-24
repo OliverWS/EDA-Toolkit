@@ -32,7 +32,7 @@ var FolderDroplet = function(id, callback, opts) {
 		reader.onload = function (event) {
 		  console.log(event.target);
 		  var edaDivId = "EDA" + ($("div.edaGraph").length + 1);
-		  $("#" + that.id).append($("<div>").attr("id",edaDivId).addClass("edaGraph"));
+		  $("#" + that.id).append($("<div>").attr("id",edaDivId).addClass("edaGraph").addClass("row-fluid"));
 		  var edaFile = new qLogFile();
 		  edaFile.progress = "progress-indicator-" + parseInt(Math.random()*10000, 10) ;	
 		  var loader = new Loader("#" + edaDivId, edaFile.progress);
@@ -152,7 +152,6 @@ var FolderDroplet = function(id, callback, opts) {
 			console.log("Video loaded!");
 			player.size(that.vsize.width,that.vsize.height);
 			
-//			$("#"+vidid).append("<div><input id='timepicker' type='text' class='input-small'><span class='add-on'><i class='glyphicon glyphicon-time'></i></span></div>");		
 			that.videoFiles.push(player);
 		});
 	

@@ -3,6 +3,7 @@ var pi = Math.PI;
 var np = {};
 var MU = "\u03BC";
 
+
 urlParams = (function()
 	{
 		var items = location.search.substring(1).split("&");

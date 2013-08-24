@@ -1,3 +1,12 @@
+if(d3){
+	d3.selection.prototype.moveToFront = function() {
+	  return this.each(function(){
+	    this.parentNode.appendChild(this);
+	  });
+	};
+}
+
+
 var Grapher = function(div, opts) {
 	var that = this;
 	this.container = div;
@@ -91,6 +100,37 @@ var Grapher = function(div, opts) {
 			that.spinner.stop();
 		}
 	};
+	this.channelSelectHandler = function(evt) {
+		var root = $(that.container);
+		$(this).toggleClass("selected-channel");
+		var selectedChannels = [];
+		$(root).find("#channel-select li a.selected-channel").each(function(i, el) {
+			selectedChannels.push($(el).text());
+		});
+		console.log("New Selected Channels: " + selectedChannels);
+		that.setChannels(selectedChannels);
+		$(root).find("#channel-select li.ignore").remove();
+		var ch = $(root).find("#channel-select li").remove().sort(function(a, b) {
+			if ($(a).find("a").hasClass("selected-channel") && !$(b).find("a").hasClass("selected-channel")) {
+				return -1;
+			}
+			else if ($(b).find("a").hasClass("selected-channel") && !$(a).find("a").hasClass("selected-channel")) {
+				return 1;
+			}
+			else {
+				return 0;
+			}
+		
+		});
+		
+		ch.prependTo($(root).find("#channel-select"));
+		$(root).find("#channel-select li a.selected-channel").last().parent().after('<li class="divider ignore"></li><li role="presentation" class="dropdown-header ignore">Other Channels</li>');
+		$(root).find("#channel-select li a.selected-channel").first().parent().before('<li role="presentation" class="dropdown-header ignore">Visible Channels</li>');
+		
+		$(root).find("#channel-select li a").on("click", that.channelSelectHandler);
+		$(".channel-select-dropdown").sortable({items: "li:has(.selected-channel)",cancel:".ignore"});
+		evt.stopPropagation();
+	};
 	
 	this.addPicker = function() {
 
@@ -111,9 +151,9 @@ var Grapher = function(div, opts) {
 		
 		$(that.container).prepend($("<div>").addClass("btn-toolbar").addClass("pull-right").css("margin-bottom",-50).append(
 			$("<div>").addClass("btn-group").append(
-				$("<button>").attr("class","btn dropdown-toggle").attr("data-toggle","dropdown").attr("href","#").html("Channels\n<span class='caret'></span>")
+				$("<button>").attr("class","btn btn-info dropdown-toggle").attr("data-toggle","dropdown").attr("href","#").html("Channels\n<span class='caret'></span>")
 			).append(
-				$("<ul>").addClass("dropdown-menu").attr("id","channel-select").attr("role","menu")
+				$("<ul>").addClass("dropdown-menu channel-select-dropdown").attr("id","channel-select").attr("role","menu")
 			)
 		));
 		
@@ -138,20 +178,24 @@ var Grapher = function(div, opts) {
 			}
 		});
 		
-		$(root).find("#channel-select li a").on("click", function(evt) {
-			$(this).toggleClass("selected-channel");
+		$(root).find("#channel-select li a").on("click", that.channelSelectHandler);
+		$(root).find("#channel-select").on("sortupdate", function(evt) {
+			var selectedChannels = [];
+			$(root).find("#channel-select li a").each(function(i, el) {
+				that.datasourceContainer.select("#"+$(el).text()).datum(i);
+			});
+			that.datasourceContainer.selectAll("path").sort(d3.ascending);
 			var selectedChannels = [];
 			$(root).find("#channel-select li a.selected-channel").each(function(i, el) {
 				selectedChannels.push($(el).text());
 			});
-			console.log("New Selected Channels: " + selectedChannels);
 			that.setChannels(selectedChannels);
-		
 		});
-		
-		
 	
 	};
+	
+	
+	
 	
 	this.renderCanvas = function(points) {
 		var context = that.graph.getContext("2d");
@@ -196,6 +240,33 @@ var Grapher = function(div, opts) {
 	
 	this.zoom_rect = {};
 	
+	this.resize = function(height,width) {
+		var el = this.container;
+		if (width != undefined) {
+			$(el).css("width", width);
+			$(el).find("svg").attr("width",width);
+			that.p = ($(el).width()/5) < 25 ? ($(el).width()/5) : 25;
+			that.w = $(el).width() - 3*p;
+			that.datasourceContainer.attr("width",that.w);
+		}
+		
+		if (height != undefined) {
+			$(el).css("height", height);
+			$(el).find("svg").attr("height",height);
+			that.h = $(el).height() - 2*that.p;
+			that.datasourceContainer.attr("height", that.h);
+		}
+		
+		
+		if (that.currentRange) {
+			that.renderUpdate(that.currentRange);
+		}
+		else {
+			that.renderUpdate();
+		}
+	
+	};
+	
 	this.setChannels = function(channels) {
 		var validChannels = [];
 		
@@ -205,11 +276,20 @@ var Grapher = function(div, opts) {
 				validChannels.push(c);
 				if (that.channels.find(c).length == 0) {
 					//This is a new channel
-					that.datasourceContainer.append("path")
-						.attr("d", "")
-					    .attr("class", c.toLowerCase())
-					    .attr("clip-path", "url(#edaclip)")
-					    .attr("id",c);
+					if (c == "X" || c == "Y" || c == "Z") {
+						that.datasourceContainer.append("path")
+							.attr("d", "")
+						    .attr("class", c.toLowerCase())
+						    .attr("id",c);
+						
+					}
+					else {
+						that.datasourceContainer.append("path")
+							.attr("d", "")
+						    .attr("class", c.toLowerCase())
+						    .attr("clip-path", "url(#edaclip)")
+						    .attr("id",c);
+					}
 					
 				}
 			}
@@ -223,13 +303,38 @@ var Grapher = function(div, opts) {
 		}
 		
 		that.channels = validChannels;
-		if (that.channels.find("X") > -1 || that.channels.find("Y") > -1 || that.channels.find("Z") > -1) {
-			//that.showAcc = true;
+		var previousShowAccState = that.showAcc;
+		if (that.channels.find("X").length > 0 || that.channels.find("Y").length > 0 || that.channels.find("Z").length > 0) {
+			that.showAcc = true;
 		}
 		else {
 			that.showAcc = false;
+			that.datasourceContainer.selectAll(".Acc").remove();
+			that.datasourceContainer.selectAll(".axis-label-Acc").remove();
+			if (!that.showAcc && previousShowAccState) {
+				that.datasourceContainer.attr("height", that.h);
+				
+			}
 		}
-		that.renderUpdate();
+		$(that.container).find("#channel-select li a").each(function(i,el) {
+			console.log(el);
+			console.log(that.channels.find($(el).text()));
+			if(that.channels.find($(el).text()).length > 0){
+				$(el).attr("class","selected-channel");
+			}
+			else {
+				$(el).attr("class", "");
+			}
+		});
+		
+		if (that.currentRange) {
+			that.renderUpdate(that.currentRange);
+		}
+		else {
+			that.renderUpdate();
+		}
+		that.datasourceContainer.selectAll(".marker").moveToFront();
+		
 		
 	};
 	
@@ -273,7 +378,7 @@ var Grapher = function(div, opts) {
 				}
 			}
 			
-			y2 = d3.scale.linear().domain([accData.map(function(d) {return d.min();}).min(),accData.map(function(d) {return d.max();}).max()]).range([that.h*(2.0/3.0), that.height]);
+			var y2 = d3.scale.linear().domain([accData.map(function(d) {return d.min();}).min(),accData.map(function(d) {return d.max();}).max()]).range([that.h*(2.0/3.0), that.height]);
 			lineAcc = d3.svg.line()
 			    .x(function(d,i) { return x(i); })
 			    .y(function(d) { return  y2(d); });
@@ -306,7 +411,7 @@ var Grapher = function(div, opts) {
 		that.datasourceContainer = edaContainer;
 		
 		
-		that.renderGrid(edaContainer);
+		that.renderGrid(that.datasourceContainer, "EDA");
 		
 		for (var i = 0; i < that.channels.length; i++) {
 			data[i].unshift(0.0);
@@ -315,7 +420,6 @@ var Grapher = function(div, opts) {
 				edaContainer.append("path")
 					.attr("d", that.lineAcc(data[i]))
 				    .attr("class", that.channels[i].toLowerCase())
-				    .attr("clip-path", "url(#edaclip)")
 				    .attr("id",that.channels[i]);
 			}
 			else {
@@ -341,8 +445,8 @@ var Grapher = function(div, opts) {
 					.attr("cx", function(d) {return that.x(that.datasource.x.invert(d.index));})
 					.attr("cy", function(d) {
 						var x = Math.round(that.x(that.datasource.x.invert(d.index)));
-						if (x < that.data[that.data.length-1].length && x >= 0) {
-							return that.y(that.data[that.data.length-1][x]);
+						if (x < that.data[that.data.length - 1].length && x >= 0) {
+							return that.y(that.data[that.data.length - 1][x]);
 							
 						}
 						else {
@@ -523,6 +627,7 @@ var Grapher = function(div, opts) {
 			range.ymin = that.datasource.y(ymax) || 0; //Note switched since height is measured from top left
 			range.ymax = that.datasource.y(ymin) || 1; //Note switched since height is measured from top left
 			console.log("Before onzoom with Start=" +that.datasource.timeForOffset(range.xmin) + " End=" + that.datasource.timeForOffset(range.xmax));
+			that.currentRange = range;
 			that.renderUpdate(range);
 		}
 		else {
@@ -573,8 +678,8 @@ var Grapher = function(div, opts) {
 			range.ymin = that.channels.map(function(c){return that.datasource.data[c].min();}).min();
 			range.ymax = that.channels.map(function(c){return that.datasource.data[c].max();}).max();
 		}
-		localStorage.range = range;
-		that.range = range;
+		localStorage.range = JSON.stringify(range);
+		that.currentRange = range;
 		that.datasource.x = d3.scale.linear().domain([0, that.w]).range([range.xmin, range.xmax]);
 		that.datasource.y = d3.scale.linear().domain([0, that.h]).range([range.ymax, range.ymin]);
 		var target_points = ((range.xmax - range.xmin) > that.w) ? that.w : (range.xmax - range.xmin);
@@ -600,40 +705,61 @@ var Grapher = function(div, opts) {
 			var y = d3.scale.linear().domain(yrange).range([that.h, 0]);
 		}
 		else {
-			var y = d3.scale.linear().domain([data.map(function(d){return d.min();}).min(),data.map(function(d){return d.max();}).max()]).range([that.h, 0]);
+			if(that.showAcc) {
+				var nonAccData = [];
+				for (var i = 0; i < data.length; i++) {
+					if (!(that.channels[i] == "X" || that.channels[i] == "Y" || that.channels[i] == "Z")) {
+						nonAccData.push(data[i]);
+					}
+				}
+				var y = d3.scale.linear().domain([nonAccData.map(function(d){return d.min();}).min(),nonAccData.map(function(d){return d.max();}).max()]).range([that.h*(2.0/3.0), 0]);
+				
+			}
+			else {
+				var y = d3.scale.linear().domain([data.map(function(d){return d.min();}).min(),data.map(function(d){return d.max();}).max()]).range([that.h, 0]);
+			}
 		}
 		
 		if (that.showAcc) {
-			y = y.range([that.h*(2.0/3.0), 0]);
 			var accData = [];
 			for (var i = 0; i < that.channels.length; i++) {
 				if (that.channels[i] == "X" || that.channels[i] == "Y" || that.channels[i] == "Z") {
-					accData.push(that.data[i]);
+					accData.push(data[i]);
 				}
 			}
 			
-			var y2 = d3.scale.linear().domain([accData.map(function(d) {return d.min();}).min(),accData.map(function(d) {return d.max();}).max()]).range([that.h*(2.0/3.0), that.height]);
-			var 	lineAcc = d3.svg.line()
+			that.y2 = d3.scale.linear().domain([accData.map(function(d) {return d.min();}).min(),accData.map(function(d) {return d.max();}).max()]).range([that.h,that.h*(2.0/3.0)+that.p/3]);
+			var lineAcc = d3.svg.line()
 			    .x(function(d,i) { return x(i); })
-			    .y(function(d) { return  y2(d); });
+			    .y(function(d) { return  that.y2(d); });
 			
 		}
 		that.x = x;
 		that.y = y;
-		
+		that.datasourceContainer.select("#edaclip rect").attr("height",y.range().max()-y.range().min()).attr("y",y.range().min());
 		var line = d3.svg.line()
 		    .x(function(d,i) { return x(i); })
 		    .y(function(d) { return  y(d); });
 		that.data = data;
 		
-		that.renderGrid(that.datasourceContainer, x, y);
+		that.renderGrid(that.datasourceContainer,"EDA",x,y);
+		if ( that.showAcc) {
+			that.renderGrid(that.datasourceContainer, "Acc", that.x,that.y2);
+		}
 		for (var i = 0; i < that.channels.length; i++) {
 			data[i].unshift(0.0);
 			data[i].push(0.0);
 			
 			console.log("Updating Data for " + that.channels[i]);
-			that.datasourceContainer.select("#" + that.channels[i]).transition(500)
+			if ( (that.channels[i] == "X" || that.channels[i] == "Y" || that.channels[i] == "Z") && that.showAcc) {
+				that.datasourceContainer.select("#" + that.channels[i]).transition(500)
+					.attr("d", lineAcc(data[i]));
+				
+			}
+			else {
+				that.datasourceContainer.select("#" + that.channels[i]).transition(500)
 				.attr("d", line(data[i]));
+			}
 		}
 		
 		that.datasourceContainer.selectAll(".marker")
@@ -642,7 +768,7 @@ var Grapher = function(div, opts) {
 			.attr("cx", function(d) {return that.x(that.datasource.x.invert(d.index));})
 			.style("opacity", function(d) {
 				var x = Math.round(that.x(that.datasource.x.invert(d.index)));
-				if (x < that.data[that.data.length-1].length && x >= 0) {
+				if (x < that.data[0].length && x >= 0) {
 					return 1.0;
 				}
 				else {
@@ -651,8 +777,20 @@ var Grapher = function(div, opts) {
 			})
 			.attr("cy", function(d) {
 				var x = Math.round(that.datasource.x.invert(d.index));
-				if (x < that.data[that.data.length-1].length && x >= 0) {
-					return y(that.data[that.data.length-1][x]);
+				if (that.showAcc) {
+					if (x < nonAccData[nonAccData.length - 1].length && x >= 0) {
+						return that.y(nonAccData[nonAccData.length-1][x]);
+						
+					}
+					else {
+						return 0;
+					}
+					
+					
+				}
+				else if (x < that.data[that.data.length - 1].length && x >= 0) {
+					
+					return that.y(that.data[that.data.length-1][x]);
 					
 				}
 				else {
@@ -663,20 +801,28 @@ var Grapher = function(div, opts) {
 		
 	};
 	
-	this.renderGrid = function(edaContainer,x, y,h,w) {
-		var w = w || this.w;
-		var h = h || this.h;
-		var x = x || this.x;
-		var y = y || this.y;
+	this.renderGrid = function(edaContainer, channel, x, y,h,w) {
+		var channel = channel || "EDA";
+		var x = x || that.x;
+		var y = y || that.y;
+		var w = w || that.w;
+		var h = h || (y.range().max()- y.range().min());
 		var p = this.p;
-		var background = edaContainer.append("svg:rect")
-							.attr("class", "background")
-							.attr("id","background-rect")
-							.attr("x",0)
-							.attr("y",0)
-							.attr("width",w)
-							.attr("height",h);
-		
+		that.datasourceContainer.selectAll("#background-rect-"+channel).remove();
+//		if (that.datasourceContainer.select("rect#background-rect-"+channel)[0].length == 0) {
+			var background = edaContainer.append("svg:rect")
+								.attr("class", "background " +channel)
+								.attr("id","background-rect-"+channel)
+								.attr("x",0)
+								.attr("y",y.range().min())
+								.attr("width",w)
+								.attr("height",h);
+//		}
+//		else {
+//			var background = that.datasourceContainer.select("#background-rect-"+channel).attr("y",y.range().min()).attr("height",h);
+//			
+//			
+//		}
 		 //dynamicTimeTicks(edaContainer,data,data,10);
 		 //console.log("Y Ticks:");
 		 //console.log(y.ticks(10));
@@ -684,78 +830,75 @@ var Grapher = function(div, opts) {
 		 //console.log(x.ticks(5));
 		 
 		 //Clear all
-		 edaContainer.selectAll("g.x").remove();
-		 edaContainer.selectAll("g.y").remove();
+		 edaContainer.selectAll("g."+channel).remove();
 		 
 		 //Now, lets do the horizontal ticks
-		 var xrule = edaContainer.selectAll("g.x")
+		 var xrule = edaContainer.selectAll("g.x."+channel)
 		     .data(x.ticks(5))
 		     .enter().append("svg:g")
-		     .attr("class", "x");
+		     .attr("class", "x "+channel);
 		 xrule.append("svg:line")
 		     .attr("class", "grid")
 		     .style("shape-rendering", "crispEdges")
 		     .attr("x1", x)
 		     .attr("x2", x)
-		     .attr("y1", 0)
-		     .attr("y2", h);
+		     .attr("y1", y.range().min())
+		     .attr("y2", y.range().max());
 		
+		if (channel != "Acc") {
 		     
 		 xrule.append("svg:text")
-		     .attr("class", "xText")
+		     .attr("class", "xText "+channel)
 		     .attr("x", x)
-		     .attr("y", h+10)
+		     .attr("y", that.h+10)
 		     .attr("dy", ".35em")
 		     .attr("text-anchor", "middle")
 		 	 .text(function(d,i) {return that.datasource.timeForOffset(that.datasource.x(d)).shortString();});
-		 
+		 }
 		 //Now do the vertical lines and labels
-		 
-		 var yrule = edaContainer.selectAll("g.y")
-		     .data(y.ticks(10))
+		 var nTicks = (h > 100) ? 10 : 3
+		 var yrule = edaContainer.selectAll("g.y."+channel)
+		     .data(y.ticks(nTicks))
 		     .enter().append("svg:g")
-		     .attr("class", "y");
+		     .attr("class", "y " + channel);
 		 
 		 yrule.append("svg:line")
-		     .attr("class", "grid")
+		     .attr("class", "grid " + channel)
 		     .style("shape-rendering", "crispEdges")
 		     .attr("x1", 0)
 		     .attr("x2", w)
 		     .attr("y1", y)
 		     .attr("y2", y);
+		 
 		 yrule.selectAll(".yText").remove();
-		 yrule.append("svg:text")
-		     .attr("class", "yText")
-		     .attr("x", -3)
-		     .attr("y", y)
-		     .attr("dy", ".35em")
-		     .attr("text-anchor", "end")
-		 	.text(function(d,i) {return d.toFixed(2).toString()});
+		 	yrule.append("svg:text")
+		 	    .attr("class", "yText " + channel)
+		 	    .attr("x", -3)
+		 	    .attr("y", y)
+		 	    .attr("dy", ".35em")
+		 	    .attr("text-anchor", "end")
+		 		.text(function(d,i) {return d.toFixed(2).toString()});
+		 	
+		 
 		 //Now go add axis labels
-		 that.datasourceContainer.selectAll("text.axis-label").remove();
+		 that.datasourceContainer.selectAll("text.axis-label-"+channel).remove();
 		 var label = "";
-		 for (var i = 0; i < 1; i++) {
-		 		if (i > 0) {
-		 			label += " | " + that.channels[i];
-		 		}
-		 		else {
-		 			label = that.channels[i];
-		 		}
-		 		if (that.units.hasOwnProperty(that.channels[i])) {
-		 			label += " (" + that.units[that.channels[i]] + ")";
-		 		}
+		 label = channel;
+		 if (that.units.hasOwnProperty(channel)) {
+			label += " (" + that.units[channel] + ")";
 		 }
+		 var labelCenter = y.range().min() + (y.range().max()- y.range().min())/2.0;
 		 edaContainer.append("svg:text")
-		 	.attr("class", "axis-label")
+		 	.attr("class", "axis-label axis-label-"+channel)
 		 	.attr("x", 0)
-		 	.attr("y", h/2)
+		 	.attr("y", labelCenter)
 		 	.attr("dy", "0em")
 		 	.attr("dx", "-"+p+"px")
 		 	.attr("text-anchor", "middle")
-		 	.attr("transform", "rotate(-90, " + -that.p + ", " + h/2 + ")")
+		 	.attr("transform", "rotate(-90, " + -that.p + ", " + labelCenter+ ")")
 		 	.text(label);
 		 
-		 		 that.datasourceContainer.selectAll("text.title").remove();
+		 that.datasourceContainer.selectAll("text.title").remove();
 		 edaContainer.append("svg:text")
 		 	.attr("class", "title")
 		 	.attr("x", w/2)
