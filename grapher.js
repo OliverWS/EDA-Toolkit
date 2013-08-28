@@ -303,7 +303,7 @@ var Grapher = function(div, opts) {
 		}
 		
 		that.channels = validChannels;
-		var previousShowAccState = that.showAcc;
+		var previousShowAccState = (that.showAcc == true);
 		if (that.channels.find("X").length > 0 || that.channels.find("Y").length > 0 || that.channels.find("Z").length > 0) {
 			that.showAcc = true;
 		}
@@ -659,15 +659,28 @@ var Grapher = function(div, opts) {
 //		}
 		//console.log("EDA offset for cursor: " + offset +" transformed: " + that.datasource.x.invert(offset) );
 		that.datasourceContainer.selectAll("line.cursor").remove();
-		that.datasourceContainer.append("svg:line")
-				.attr("class", "cursor")
-				.style("stroke", "red")
-				.style("stroke-width", "3")
-				.attr("y1", 0)
-				.attr("y2", that.h)
-				.attr("x1", that.datasource.x.invert(offset))
-				.attr("x2", that.datasource.x.invert(offset));
-	
+		
+		if (that.followCursor) {
+			that.datasourceContainer.append("svg:line")
+					.attr("class", "cursor")
+					.style("stroke", "red")
+					.style("stroke-width", "3")
+					.attr("y1", 0)
+					.attr("y2", that.h)
+					.attr("x1", that.w/2.0)
+					.attr("x2", that.w/2.0);
+			
+		}
+		else {
+			that.datasourceContainer.append("svg:line")
+					.attr("class", "cursor")
+					.style("stroke", "red")
+					.style("stroke-width", "3")
+					.attr("y1", 0)
+					.attr("y2", that.h)
+					.attr("x1", that.datasource.x.invert(offset))
+					.attr("x2", that.datasource.x.invert(offset));
+		}
 	};
 	
 	this.renderUpdate = function(range) {

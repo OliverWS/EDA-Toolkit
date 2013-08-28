@@ -81,9 +81,15 @@ var Dropzone = function(el,callback,opts) {
 	    // Get folder contents
 	    var dirReader = item.createReader();
 	    dirReader.readEntries(function(entries) {
+	      var ents = [];
 	      for (var i=0; i<entries.length; i++) {
-	        that.traverseFileTree(entries[i], path + item.name + "/");
+	      	ents.push(entries[i]);
 	      }
+	      ents.sort(function(a,b) {return a.name.localeCompare(b.name);});
+	      for (var i = 0; i < ents.length; i++) {
+	      	that.traverseFileTree(ents[i], path + item.name + "/");
+	      }
+	      
 	    });
 	  }
 	}

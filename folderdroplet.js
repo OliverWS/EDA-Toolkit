@@ -162,7 +162,7 @@ var FolderDroplet = function(id, callback, opts) {
 	that.dropzone = new Dropzone(that.id,
 		function (file, isDone) {
 			  if(isDone){
-			  	setTimeout(that.setupHandlers, 200);
+			  	setTimeout(that.setupHandlers, 500	);
 			  	that.callback(that.graphs);
 			  	return;
 			  }
@@ -173,6 +173,9 @@ var FolderDroplet = function(id, callback, opts) {
 			  		that.handleEDA(file);
 			  		break;
 			  	case "reda":
+			  		that.handleEDA(file);
+			  		break;
+			  	case "csv":
 			  		that.handleEDA(file);
 			  		break;
 			  	case "avi":
