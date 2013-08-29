@@ -72,17 +72,17 @@ var FolderDroplet = function(id, callback, opts) {
 			player.addEvent("timeupdate", function(e) {
 	
 				if($("#" + this.id).attr("data-start-time")){
-					var videoStart = new Date($("#" + this.id).attr("data-start-time"));
+					var videoStart = new Date(parseInt($("#" + this.id).attr("data-start-time")));
 				}
 				else {
 	
 					var startTime = $("#" + this.id).find("video").attr("filename");
 					//01-17-2013 09:03:45.mp4
 					var date = startTime.split(" ")[0].split("-").map(parseInt);
-					var time = startTime.split(" ")[1].split(".m")[0].split("_").map(parseInt);
+					var time = startTime.split(" ")[1].split(".m")[0].split("_").map(parseFloat);
 					console.log(date + " " + time);
-					var videoStart = new Date(date[0], date[1]-1, date[2], time[0], time[1], time[2] );
-					$("#" + this.id).attr("data-start-time", videoStart);
+					var videoStart = new Date(date[0], date[1]-1, date[2], time[0], time[1], Math.floor(time[2]),(time[2]-Math.floor(time[2]))*1000.0 );
+					$("#" + this.id).attr("data-start-time", videoStart.valueOf());
 				}
 	
 				console.log("Current Time: " + this.currentTime());

@@ -317,7 +317,7 @@ self.parseBinaryData = function(body, columnHeaders) {
 	}
 	body = body.replace(/^\r\n*/g, "");
 	var data_packets = body.split(EOL);
-	//console.log(data_packets);
+	data.markers = [];
 	var length = data_packets.length;
 	for(var n=0; n < length; n++){
 	   if((n % 1000) == 0) { 
@@ -357,7 +357,7 @@ self.parseBinaryData = function(body, columnHeaders) {
 			
 			
 	        if( eda >= 999 && acc_x <= -999.0) {
-	            data.markers.append(n);
+				data.markers.push({index:n,comment:"",type:"manual"} );
 	        }
 	        else {
 	        	data[columnHeaders[0]].push(acc_z);
