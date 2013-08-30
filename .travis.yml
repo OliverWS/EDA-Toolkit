@@ -1,6 +1,10 @@
 language: node_js
-node_js:
-  - 0.8
-before_script:
-  - gem install jekyll
-  - npm install -g grunt-cli
+node_js: 
+- 0.8
+before_script: 
+- gem install jekyll
+- npm install -g grunt-cli
+env: 
+  global: 
+  - secure: HBym9Yc6q6hGsVdGsRzeLQxDo6V1n4TVQiSZ8QpKT414PJ/W0GparuZqzY0IrL7RaUv9AG3X9nECxCLb8yTYkZhzJfEQzckEHq3WFTB2H8chqpl2kLNXy+3zkv4vdg2JoRCOxfpQRdS5QW2sLPz+j+gWmxW82SRF7mOjFSEMA8Y=
+  - secure: IZKVNOd1RKwORP7DRay6iTgCylsZMc3H0+OqDynmUAm7eCAT2tQ+rFmbN8uQK9q+wEGmfsdtY0NspEn/1s8eSXW1ooY7f7ks4t42d0WObNZajXbdfjTG9ulhifyCwwoLr5ihJ5GnEvf9sIju2uIU8FGalW/i7WXv5M9P3gXdFes=
