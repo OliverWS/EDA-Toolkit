@@ -2,6 +2,8 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   echo -e "Starting to update gh-pages with results of travis-ci build\n"
   #copy data we're interested in to other place
   cp -R dist $HOME/dist
+  cp -R css $HOME/css
+  cp -f index.html $HOME/index.html
   #go to home and setup git
   cd $HOME
   git config --global user.email "travis@travis-ci.org"
