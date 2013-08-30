@@ -28,9 +28,9 @@ module.exports = function(grunt) {
             options: {
                 banner: '<%= banner %>'
             },
-            bootstrap: {
+            edatoolkit: {
                 files: {
-                    'dist/js/<%= pkg.name %>.min.js': ['<%= concat.dest %>']
+                    'dist/js/<%= pkg.name %>.min.js': ['<%= concat.edatoolkit.dest %>']
                 }
             }
         }
@@ -42,7 +42,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
-    grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.loadNpmTasks('grunt-contrib-watch');
@@ -50,17 +49,16 @@ module.exports = function(grunt) {
 
 
     // Test task.
-    grunt.registerTask('test', ['jshint', 'qunit']);
 
     // JS distribution task.
     grunt.registerTask('dist-js', ['concat', 'uglify']);
 
-    // CSS distribution task.
-    grunt.registerTask('dist-css', ['recess']);
+    // // CSS distribution task.
+    // grunt.registerTask('dist-css', ['recess']);
 
     // Full distribution task.
-    grunt.registerTask('dist', ['clean', 'dist-css', 'dist-js']);
+    grunt.registerTask('dist', ['clean', 'dist-js']);
 
     // Default task.
-    grunt.registerTask('default', ['test', 'dist']);
+    grunt.registerTask('default', ['dist']);
 };

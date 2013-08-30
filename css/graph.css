@@ -1,0 +1,177 @@
+html {
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
+
+
+
+.popover-inner {
+	width: 430px;
+}
+
+#detailpopover.popover {
+	width: auto;
+}
+
+#graph {
+	display: block;
+	width: 80%;
+	height: 342px;
+	padding: 8px;
+	-webkit-transition: opacity 1s ease-in-out 0s;
+}
+-webkit-user-select: none;
+-khtml-user-select: none;
+-moz-user-select: none;
+-o-user-select: none;
+user-select: none;
+
+.hide {
+	opacity: 0.0;
+	-webkit-transition: opacity 1s ease-in-out 1s;
+}
+
+div.loading {
+	width: 50%%;
+	left: 25%;
+	top: 50%;
+	position: absolute;
+}
+
+text {
+	font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+	font-size: 12px;
+}
+.cursor {
+	stroke: red;
+	stroke-width: 2;
+	fill: #B0B0B0;
+	opacity: 0.5;
+}
+
+text.cursor {
+	stroke: none;
+	fill: red;
+}
+
+rect.cursor {
+	fill: #B0B0B0;
+	opacity: 0.5;
+}
+
+.grid {
+	stroke: #B0B0B0;
+	stroke-dasharray: 3,1;
+	
+}
+.tick {
+	stroke: #B0B0B0;
+	stroke-width: 2;
+}
+
+text.detail-label {
+	fill: #434343;
+	stroke: none;
+	font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+	font-weight: bold;
+	font-size: 12px;
+	
+}
+
+.event.solo {
+	fill: #434343;
+}
+
+.event {
+	fill: #2CC4FF;
+	fill-opacity: 80%;
+	cursor: pointer;
+	-webkit-transition: opacity 1s ease-in-out 0s;
+}
+
+.event:hover {
+	fill-opacity: 100%;
+	-webkit-transition: opacity 1s ease-in-out 0s;
+}
+
+.event-label {
+	fill: white;
+}
+
+.event-label.solo {
+	fill: #434343;
+}
+
+.selected-event-label {
+	fill: white;
+	font-weight: bold;
+}
+
+
+
+.axis-label {
+	font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+	font-size: 24px;
+	font-weight: 200;
+	fill: #434343;
+}
+
+.title {
+	font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+	font-size: 36px;
+	font-weight: 200;
+	fill: #434343;
+}
+
+
+yText {
+	fill: #434343;
+}
+
+.background {
+	stroke: #B0B0B0;
+	stroke-width: 2;
+	fill: none;
+}
+
+.eda, .detail {
+	stroke: #2CC4FF;
+	fill: #B6E1F2;
+}
+
+.accX {
+	stroke: red;
+	fill: none;
+}
+.accY {
+	stroke: blue;
+	fill: none;
+}
+.accZ {
+	stroke: green;
+	fill: none;
+}
+
+
+g.detail {
+	opacity: 0.5;
+	-webkit-transition: opacity 1s ease-in-out 0s;
+}
+
+g.detail:hover {
+	opacity: 1.0;
+	-webkit-transition: opacity 1s ease-in-out 0s;
+}
+.detail-toggle-button {
+	fill: gray;
+	cursor: pointer;
+}
+
+rect.detail {
+	fill: white;
+	stroke: #B0B0B0;
+	stroke-width: 2;
+}

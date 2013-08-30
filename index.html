@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html lang="en">
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--		<script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js" type="text/javascript"></script>-->
+		<script src="https://apis.google.com/js/client.js"></script>
+		<script src="http://code.jquery.com/jquery-1.8.0.min.js" type="text/javascript"></script>
+		<script src="http://codeorigin.jquery.com/ui/1.10.3/jquery-ui.min.js" type="text/javascript"></script>
+		<script src="js/lib/jquery.stylesheet.js" type="text/javascript"></script>
+		<script src="http://fgnass.github.com/spin.js/dist/spin.min.js" type="text/javascript"></script>
+		<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
+		<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+		<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">		<link rel="stylesheet" href="css/graph.css" type="text/css" />
+		<link rel="stylesheet" href="css/viewer.css" type="text/css" />
+		<script src="http://d3js.org/d3.v3.min.js"></script>	
+		<script src="js/lib/numjs.js" type="text/javascript"></script>
+		<script src="js/lib/dropzone.js" type="text/javascript"></script>
+		<script src="js/lib/grapher.js" type="text/javascript"></script>
+		<script src="js/lib/eda_toolkit.js" type="text/javascript"></script>
+		<script src="js/lib/GoogleSpreadsheet.js" type="text/javascript"></script>
+		<script src="js/lib/edadroplet.js" type="text/javascript"></script>
+		<script src="js/lib/folderdroplet.js" type="text/javascript"></script>
+		<script src="js/lib/signals.js" type="text/javascript"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.7.1/dropbox.min.js"></script>
+		<script src="https://raw.github.com/eligrey/FileSaver.js/master/FileSaver.js" type="text/javascript"></script>
+		<script src="https://raw.github.com/sjkaliski/numbers.js/master/src/numbers.js" type="text/javascript"></script>
+		<link href="http://vjs.zencdn.net/c/video-js.css" rel="stylesheet">
+		<script src="http://vjs.zencdn.net/c/video.js"></script>
+		<script src="js/lib/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+		<link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css" type="text/css" />
+		<style>
+			.view-container {
+				padding: 20px;
+				padding-right: 50px;
+			}
+		
+			#viewer {
+				//margin: 20px;
+				min-height: 480px;
+				max-width: 1920px;
+				height: 100%;
+				width: 100%;
+				
+			}
+			
+			.toolbar {
+				position: fixed;
+				right: 5px;
+				width: 40px;
+			}
+			
+			.edaGraph {
+				//margin: 20px;
+				height: 300px	;
+				width: 100%;
+				
+			}
+			
+			.edaGraph.ui-sortable-helper {
+				background: white;
+				box-shadow: 0px 3px 5px #444;
+			}
+			
+			div.placeholder {
+				display: block;
+				height: 300px;
+				width: 100%;
+				border: 5px dashed #333;
+				border-radius: 5px;
+				background: #CCC;
+			}
+			
+			div.handle {
+				height: 300px;
+				width: 30px;
+				display: block;
+				position: absolute;
+				z-index: 999;
+				opacity: 0.25;
+			}
+			
+			
+			div.handle:hover {
+				opacity: 1.0;
+				background: rgba(255, 255, 255, .75);
+				cursor: pointer;
+			}
+			
+			div.handle i{
+				position: relative;
+				top: 50%;
+				left: 28%;
+				margin-top: -50%;
+			}
+			
+			text.Acc {
+				color: purple;
+			}
+			
+			div.video {
+				height: auto;
+				width: 480px;
+				clear: both;
+				margin: 15px;
+			}
+			
+			a.selected-channel {
+				background-color: #5bc0de;
+				color: white;
+				border-top: 1px solid white;
+				border-bottom: 1px solid white;
+			}
+			.channel-select-dropdown > li a:hover::after {
+				float: right;
+				content: "+";
+				
+			}
+			
+			.selected-channel::after {
+				float: right;
+				content: "\2713";
+			}
+			
+			.channel-select-dropdown > li a.selected-channel:hover::after {
+				float: right;
+				content: "\00D7";
+			}
+			
+			path {
+				stroke: black;
+				fill: gray;
+				opacity:0.8
+			}
+			
+			
+			.eda {
+				stroke: #2CC4FF;
+				fill: #B6E1F2;
+			}
+			
+			path.tonic {
+				stroke: steelblue;
+				stroke-width: 2;
+				fill: rgba(70, 130, 180,0.75);
+			}
+			
+			path.x {
+				stroke: red;
+				fill: none;
+			}
+			path.y {
+				stroke: blue;
+				fill: none;
+			}
+			path.z {
+				stroke: green;
+				fill: none;
+			}
+			
+			
+		
+		</style>
+	</head>
+	<body>
+		<div class="container-fluid">
+			<div class="header">
+				<h1>EDA Viewer<small> beta</small><span class="pull-right"><small>Folder:  </small><span id="foldername"></span></span></h1>
+			</div>
+			<hr />
+			
+			<div class="row-fluid">
+				<div class="span12 view-container">	
+						<div class="btn-group-vertical pull-right hide toolbar-buttons toolbar" data-toggle="buttons">
+						  <label class="btn btn-primary active" id="sync">
+						    <input type="checkbox" checked><i class="icon-lock"></i><span class="hide"> Sync Graphs</span>
+						  </label>
+						  <label class="btn btn-primary" id="showACC">
+						    <input type="checkbox"><i class="icon-eye-open"></i> <span class="hide">Show ACC</span>
+						  </label>
+						  <label class="btn btn-primary active" id="showVideo">
+						    <input type="checkbox" checked><i class="icon-film"></i> <span class="hide"></span>
+						  </label>
+						  
+						  <!-- Single button -->
+						    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+						   <i class="icon-fullscreen"></i> <span class="hide">  Graph Size</span> <span class="caret"></span>
+						    </button>
+						    <ul id="graphSize" class="dropdown-menu" role="menu">
+						      <li><a class="selected-channel" href="#" size="300">Small</a></li>
+						      <li><a href="#" size="450">Medium</a></li>
+						      <li><a href="#" size="600">Large</a></li>
+						    </ul>
+						</div>					
+					
+					<div id="viewer" class="" >
+					
+					</div>
+				</div>
+			
+			</div>
+			<footer>
+				<div class="pull-right">
+					<p>Created by <a href="http://ollie.ws">Oliver Wilder-Smith</a></p>
+				</div>
+			
+			</footer>
+			
+		</div>
+	</body>
+	<script type="text/javascript">
+		var edaFile, graphers, spreadsheet, drop, drop2, csv;		
+		
+		
+		$(document).on("ready", function() {
+			$("#showACC").on("click", function() {
+				setTimeout(function() {
+					var show = $("#showACC").hasClass("active");
+					if (show) {
+						$("#showACC").find("i").attr("class", "icon-eye-close");
+						$("#showACC span").html($("#showACC span").html().replace("Show","Hide"));
+					}
+					else {
+						$("#showACC").find("i").attr("class", "icon-eye-open");
+						$("#showACC span").html($("#showACC span").html().replace("Hide","Show"));
+					}
+				}, 50);
+			
+			});
+			$("#showVideo").on("click", function() {
+				setTimeout(function() {
+					var show = $("#showVideo").hasClass("active");
+					if (show) {
+						$(".video-js").show('slow');
+					}
+					else {
+						$(".video-js").hide('slow');
+					}
+				}, 50);
+			
+			});
+			
+			$("#sync").on("click", function() {
+				setTimeout(function() {
+					var show = $("#sync").hasClass("active");
+					if (show) {
+						$("#sync").find("i").attr("class", "icon-lock");
+					}
+					else {
+						$("#sync").find("i").attr("class", "icon-unlock");
+					}
+				}, 50);
+			
+			});
+			
+		
+			$("#showACC input").on("change", function() {
+				console.log("Value of showACC=" + $("#showACC input")[0].checked);
+				var show =  ($("#showACC input")[0].checked == true);
+				
+				for (var n = 0; n < graphers.length; n++) {
+					var accChannels = ["X","Y","Z"];
+					if (show) {
+						var currentChannels = graphers[n].channels.clone();
+						for (var i = 0; i < accChannels.length; i++) {
+							if (graphers[n].channels.find(accChannels[i]).length == 0) {
+								currentChannels.push(accChannels[i]);
+							}
+						}
+						graphers[n].setChannels(currentChannels);
+						
+					}
+					else {
+						var targetChannels = [];
+						for (var i = 0; i < graphers[n].channels.length; i++) {
+							var c = graphers[n].channels[i];
+							if ((c != "X") && (c != "Y") && (c != "Z")) {
+								targetChannels.push(c);
+							}
+						}
+						graphers[n].setChannels(targetChannels);
+					}
+					
+				}
+			});
+			
+			$("#graphSize").find("li a").on("click", function(evt) {
+				$("#graphSize").find("li a").removeClass("selected-channel");
+				$(this).addClass("selected-channel");
+				$(".handle").css("height",parseInt($(this).attr("size")));
+				for (var i = 0; i < graphers.length; i++) {
+					graphers[i].resize(parseInt($(this).attr("size")));
+				}
+			});
+			
+			$(".edaGraph").on("sortmove", function(e) {
+				$(".placeholder").css("height", $(this).height());
+			
+			});
+			
+			
+			drop = new FolderDroplet("viewer", function(graphs) {
+				console.log(graphers);
+				graphers = graphs;
+				$("div.edaGraph").each(function(i,el) {
+					$(el).find(".handle").remove();
+					$(el).prepend('<div class="handle"><i class="icon-sort"></i></div>');						
+				});
+				$(".channel-select-dropdown").sortable({items: "li:has(.selected-channel)",cancel:".ignore"});
+				  $( "#viewer" ).sortable({
+				    placeholder: "placeholder",
+				    handle: ".handle",
+				    tolerance: "pointer"
+				  });
+				$( ".video-js" ).resizable({
+				  aspectRatio: 16 / 9,
+				  animate: true
+				  
+				});
+				
+				for (var i = 0; i < graphers.length; i++) {
+					var g = graphers[i];
+					g.onzoom = function(s,e,t) {
+						if($("#sync").hasClass("active")){
+							for (var n = 0; n < graphers.length; n++) {
+								if(n != i){
+									graphers[n].zoom(s,e,t);
+								}
+							}
+						}
+		
+					};
+					
+					setTimeout(function() {
+						$(".toolbar-buttons").removeClass("hide");
+						if (g.datasource.channels.find("Tonic").length > 0) {
+							g.setChannels(["EDA","Tonic","Phasic"]);
+							g.channelSelectHandler();
+						}
+							  
+						  
+					}, 500);
+				}
+				$(document).on("keydown", function(e) {
+					  switch (e.which) {
+					    case 39: // right arrow
+					    //case 32: // space
+					    //case 34:  // page down
+					    {
+					      if ($("video").length > 0) {
+					      	_V_($("video").attr("id")).currentTime(_V_($("video").attr("id")).currentTime()+0.02);
+					      }
+					      else {
+						      for (var i = 0; i < graphers.length; i++) {
+						      	var g = graphers[i];
+						      	var s = g.datasource.timeForOffset(g.datasource.x(0)).add(1000);
+						      	var e = g.datasource.timeForOffset(g.datasource.x(g.w)).add(1000);
+						      	g.zoom(s,e,"zoomin");
+						      }
+					      }
+					      break;
+					    }
+					    case 8: { // delete
+					      //step(d3.event.shiftKey ? +1 : -1);
+					      break;
+					    }
+					    case 37: // left arrow
+					    case 33: { // page up
+							if ($("video").length > 0) {
+								console.log("Video time: " + _V_($("video").attr("id")).currentTime());
+								_V_($("video").attr("id")).currentTime(_V_($("video").attr("id")).currentTime()-0.02);
+							}
+							else {
+							    for (var i = 0; i < graphers.length; i++) {
+							    	var g = graphers[i];
+							    	var s = g.datasource.timeForOffset(g.datasource.x(0)).sub(1000);
+							    	var e = g.datasource.timeForOffset(g.datasource.x(g.w)).sub(1000);
+							    	g.zoom(s,e,"zoomin");
+							    }
+							}
+					      
+					      break;
+					    }
+					    default: return;
+					  }
+					
+				
+				});
+				
+	
+			});	
+			
+		});
+		
+	
+		
+	</script>
+</html>
