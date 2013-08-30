@@ -1,10 +1,12 @@
+language: node_js
 node_js: 
 - 0.8
-env: 
-  global: 
-    secure: Yb/fpk31x+xNgz+LEeIjxBaM7rF0ylr/xK9S3f7JJt35xzg6TVzv3npqnUF/ya5bXadDUIj4Ajm6vByLC8egtOhdAxr10AHwNAW/8hQfm92VCS259C1J5ex5ftRrDN2LTs/o/uu/hWkXEIxAVNsINMR5WiCdpJU6Ndw/5PbdH6w=
-language: node_js
-after_success: ./update-gh-pages.sh
 before_script: 
 - gem install jekyll
 - npm install -g grunt-cli
+
+env: 
+  global: 
+    secure: Yb/fpk31x+xNgz+LEeIjxBaM7rF0ylr/xK9S3f7JJt35xzg6TVzv3npqnUF/ya5bXadDUIj4Ajm6vByLC8egtOhdAxr10AHwNAW/8hQfm92VCS259C1J5ex5ftRrDN2LTs/o/uu/hWkXEIxAVNsINMR5WiCdpJU6Ndw/5PbdH6w=
+after_success: ./update-gh-pages.sh
+
