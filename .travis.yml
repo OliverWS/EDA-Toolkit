@@ -1,10 +1,11 @@
-after_success: wget -r sftp://cbslab.org/eda-toolkit/ --user $FTP_USER --password $FTP_PASS
 language: node_js
 before_script: 
 - gem install jekyll
 - npm install -g grunt-cli
 node_js: 
 - 0.8
+compile:
+- grunt dist
 after_success: ./update-gh-pages.sh
 
 env: 
