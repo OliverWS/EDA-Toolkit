@@ -1,7 +1,7 @@
 
 var qLogFile =  function () {
 	var that = this;
-	this.worker = new Worker("http://oliverws.github.io/EDA-Toolkit/js/eda_toolkit.worker.min.js");
+	this.worker = new Worker("js/eda_toolkit.worker.min.js");
 	that.isEDAFile = true;
 	that.didAlreadyLoad = false;
 	that.filename = "EDA File";

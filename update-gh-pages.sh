@@ -11,6 +11,8 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   #go into diractory and copy data we're interested in to that directory
   cd gh-pages
   cp -Rf $HOME/dist/* .
+  cp -f $HOME/index.html .
+  cp -Rf $HOME/css .
   #add, commit and push files
   git add -f .
   git commit -m "Travis build $TRAVIS_BUILD_NUMBER pushed to gh-pages"
