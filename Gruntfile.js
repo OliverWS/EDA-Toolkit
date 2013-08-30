@@ -9,6 +9,7 @@ module.exports = function(grunt) {
                 '* Copyright 2013 Oliver Wilder-Smith \n' +
                 '* <%= _.pluck(pkg.licenses, "url").join(", ") %>\n' +
                 '*/\n',
+        jqueryCheck: 'if (!jQuery) { throw new Error(\"EDA Toolkit requires jQuery\") }\n\n',
         // Task configuration.
         clean: {
             dist: ['dist']
