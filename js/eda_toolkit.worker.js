@@ -1,6 +1,6 @@
 //importScripts("jquery.js");
-importScripts("numjs.js");
-importScripts("signals.js");
+//importScripts("numjs.js");
+//importScripts("signals.js");
 //importScripts("https://raw.github.com/eligrey/BlobBuilder.js/master/BlobBuilder.min.js");
 var separator = "---------------------------------------------------------\r\n";
 

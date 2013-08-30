@@ -48,17 +48,5 @@ var EDADroplet = function(id, callback, opts) {
 	
 
 
-}
-
-var Loader = function(id, progressId) {
-	
-	$(id).append(
-		$("<div>").addClass("loader")
-			.append($("<h2>").text("Loading..."))
-			.append($("<div>").attr("id", progressId).attr("class","progress progress-striped active")
-				.append($("<div>").addClass("bar").attr("style", "width: 0%;"))
-			)
-	);
-	var offset = ($(id).height() - $(id).find(".loader").height()  - $(id).find("h2").height())/2.0;
-	$(id).find(".loader").css("margin-top",offset);
 };
+

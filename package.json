@@ -1,5 +1,5 @@
 {
-    "name": "edatoolkit"
+    "name": "eda_toolkit"
   , "description": "Browser based solution for displaying and interacting with EDA and video data."
   , "version": "0.9.0"
   , "keywords": ["eda", "visualization"]

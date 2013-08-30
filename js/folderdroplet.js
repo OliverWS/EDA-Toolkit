@@ -199,18 +199,51 @@ var FolderDroplet = function(id, callback, opts) {
 
 
 }
+	
 
-var Loader = function(id, progressId) {
+
+	$(document).on("keydown", function(e) {
+		  switch (e.which) {
+		    case 39: // right arrow
+		    //case 32: // space
+		    //case 34:  // page down
+		    {
+		      if ($("video").length > 0) {
+		      	_V_($("video").attr("id")).currentTime(_V_($("video").attr("id")).currentTime()+0.02);
+		      }
+		      else {
+			      for (var i = 0; i < graphers.length; i++) {
+			      	var g = graphers[i];
+			      	var s = g.datasource.timeForOffset(g.datasource.x(0)).add(1000);
+			      	var e = g.datasource.timeForOffset(g.datasource.x(g.w)).add(1000);
+			      	g.zoom(s,e,"zoomin");
+			      }
+		      }
+		      break;
+		    }
+		    case 8: { // delete
+		      //step(d3.event.shiftKey ? +1 : -1);
+		      break;
+		    }
+		    case 37: // left arrow
+		    case 33: { // page up
+				if ($("video").length > 0) {
+					console.log("Video time: " + _V_($("video").attr("id")).currentTime());
+					_V_($("video").attr("id")).currentTime(_V_($("video").attr("id")).currentTime()-0.02);
+				}
+				else {
+				    for (var i = 0; i < graphers.length; i++) {
+				    	var g = graphers[i];
+				    	var s = g.datasource.timeForOffset(g.datasource.x(0)).sub(1000);
+				    	var e = g.datasource.timeForOffset(g.datasource.x(g.w)).sub(1000);
+				    	g.zoom(s,e,"zoomin");
+				    }
+				}
+		      
+		      break;
+		    }
+		    default: return;
+		  }
+		
 	
-	$(id).append(
-		$("<div>").addClass("loader")
-			.append($("<h2>").text("Loading..."))
-			.append($("<div>").attr("id", progressId).attr("class","progress progress-striped active")
-				.append($("<div>").addClass("progress-bar").attr("role","progressbar").attr("style", "width: 0%;"))
-			)
-	);
-	//  <div class="progress-bar"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 45%">
-	
-	var offset = ($(id).height() - $(id).find(".loader").height()  - $(id).find("h2").height())/2.0;
-	$(id).find(".loader").css("margin-top",offset);
-};
+	});

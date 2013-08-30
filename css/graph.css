@@ -175,3 +175,133 @@ rect.detail {
 	stroke: #B0B0B0;
 	stroke-width: 2;
 }
+
+	.view-container {
+		padding: 20px;
+		padding-right: 50px;
+	}
+
+	#viewer {
+		//margin: 20px;
+		min-height: 480px;
+		max-width: 1920px;
+		height: 100%;
+		width: 100%;
+		
+	}
+	
+	.toolbar {
+		position: fixed;
+		right: 5px;
+		width: 40px;
+	}
+	
+	.edaGraph {
+		//margin: 20px;
+		height: 300px	;
+		width: 100%;
+		
+	}
+	
+	.edaGraph.ui-sortable-helper {
+		background: white;
+		box-shadow: 0px 3px 5px #444;
+	}
+	
+	div.placeholder {
+		display: block;
+		height: 300px;
+		width: 100%;
+		border: 5px dashed #333;
+		border-radius: 5px;
+		background: #CCC;
+	}
+	
+	div.handle {
+		height: 300px;
+		width: 30px;
+		display: block;
+		position: absolute;
+		z-index: 999;
+		opacity: 0.25;
+	}
+	
+	
+	div.handle:hover {
+		opacity: 1.0;
+		background: rgba(255, 255, 255, .75);
+		cursor: pointer;
+	}
+	
+	div.handle i{
+		position: relative;
+		top: 50%;
+		left: 28%;
+		margin-top: -50%;
+	}
+	
+	text.Acc {
+		color: purple;
+	}
+	
+	div.video {
+		height: auto;
+		width: 480px;
+		clear: both;
+		margin: 15px;
+	}
+	
+	a.selected-channel {
+		background-color: #5bc0de;
+		color: white;
+		border-top: 1px solid white;
+		border-bottom: 1px solid white;
+	}
+	.channel-select-dropdown > li a:hover::after {
+		float: right;
+		content: "+";
+		
+	}
+	
+	.selected-channel::after {
+		float: right;
+		content: "\2713";
+	}
+	
+	.channel-select-dropdown > li a.selected-channel:hover::after {
+		float: right;
+		content: "\00D7";
+	}
+	
+	path {
+		stroke: black;
+		fill: gray;
+		opacity:0.8
+	}
+	
+	
+	.eda {
+		stroke: #2CC4FF;
+		fill: #B6E1F2;
+	}
+	
+	path.tonic {
+		stroke: steelblue;
+		stroke-width: 2;
+		fill: rgba(70, 130, 180,0.75);
+	}
+	
+	path.x {
+		stroke: red;
+		fill: none;
+	}
+	path.y {
+		stroke: blue;
+		fill: none;
+	}
+	path.z {
+		stroke: green;
+		fill: none;
+	}
+	
+	

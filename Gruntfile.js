@@ -19,15 +19,36 @@ module.exports = function(grunt) {
                 stripBanners: false
             },
             edatoolkit: {
-                src: ['lib/*.js'],
+                src: ['js/numjs.js',
+                      'js/signals.js',
+                      'js/dropzone.js',
+                      'js/videodroplet.js',
+                      'js/eda_toolkit.js',
+                      'js/edadroplet.js',
+                      'js/folderdroplet.js',
+                      'js/grapher.js'],
                 dest: 'dist/js/<%= pkg.name %>.js'
+            },
+            edatoolkitworker: {
+                src: ['js/numjs.js',
+                      'js/signals.js',
+                      'js/eda_toolkit.worker.js'],
+                dest: 'dist/js/<%= pkg.name %>.worker.js'
             }
+
         },
 
         uglify: {
             options: {
-                banner: '<%= banner %>'
+                banner: '<%= banner %>',
+                compress: true
             },
+            edatoolkitworker:{
+                files:{
+                   'dist/js/<%= pkg.name %>.worker.min.js': ['<%= concat.edatoolkitworker.dest %>']
+                }
+            },
+
             edatoolkit: {
                 files: {
                     'dist/js/<%= pkg.name %>.min.js': ['<%= concat.edatoolkit.dest %>']
