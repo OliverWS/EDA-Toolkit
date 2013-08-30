@@ -5,7 +5,7 @@
   , "keywords": ["eda", "visualization"]
   , "homepage": "http://oliverws.github.com/eda-toolkit/"
   , "author": "Oliver Wilder-Smith"
-  , "scripts": { "test": "grunt test" }
+  , "scripts": { "dist": "grunt dist" }
   , "repository": {
       "type": "git"
     , "url": "https://github.com/oliverws/eda-toolkit.git"
