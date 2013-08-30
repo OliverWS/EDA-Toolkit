@@ -1,10 +1,15 @@
+after_success: wget -r sftp://cbslab.org/eda-toolkit/ --user $FTP_USER --password $FTP_PASS
 language: node_js
-node_js: 
-- 0.8
 before_script: 
 - gem install jekyll
 - npm install -g grunt-cli
+node_js: 
+- 0.8
+after_success: ./update-gh-pages.sh
+
 env: 
   global: 
   - secure: HBym9Yc6q6hGsVdGsRzeLQxDo6V1n4TVQiSZ8QpKT414PJ/W0GparuZqzY0IrL7RaUv9AG3X9nECxCLb8yTYkZhzJfEQzckEHq3WFTB2H8chqpl2kLNXy+3zkv4vdg2JoRCOxfpQRdS5QW2sLPz+j+gWmxW82SRF7mOjFSEMA8Y=
   - secure: IZKVNOd1RKwORP7DRay6iTgCylsZMc3H0+OqDynmUAm7eCAT2tQ+rFmbN8uQK9q+wEGmfsdtY0NspEn/1s8eSXW1ooY7f7ks4t42d0WObNZajXbdfjTG9ulhifyCwwoLr5ihJ5GnEvf9sIju2uIU8FGalW/i7WXv5M9P3gXdFes=
+  - secure: RG5C0IQAWZVweFQd33g3JwxJU8M5fq3T3Nmh5Yq0Sc7M2RKZwMC106rHc3KPIQ7Ft5bjbmTaPPpwpmrstkL49RGG2E2BVWOPB26dUuyAfEGTwf5EKmLvymDtXyhjiMh1XOQR1fNakFp3pk+FDtC/GFR4inbbRBaYcQcTI7GLRrI=
+  - secure: ET1mPyiXv0FwYQGP0pCmiXUwJxDx91O6kSu/PXfPaK0Sa+PJtEWZnlYJmOCc7+yElbYMQeD3tqDPVMowJW/56hmNiX2JnEM2rfmXR2mpvNlm9/Yn7OyrAAhQezp/bkW8ACxreHNeYcVqFO8L9ap4ai2Nsc/1TSTWSBT7E7KSocM=
