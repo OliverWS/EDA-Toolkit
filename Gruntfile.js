@@ -55,8 +55,15 @@ module.exports = function(grunt) {
                     'dist/js/<%= pkg.name %>.min.js': ['<%= concat.edatoolkit.dest %>']
                 }
             }
+        },
+        copy: {
+          main: {
+            files: [
+              {expand: true, src: ['css/*'], dest: 'dist/'}, // includes files in path
+              {expand: true, src: ['index.html'], dest: 'dist/'}, // includes files in path
+            ]
+          }
         }
-
     });
 
 
@@ -64,6 +71,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.loadNpmTasks('grunt-contrib-watch');
@@ -79,7 +87,7 @@ module.exports = function(grunt) {
     // grunt.registerTask('dist-css', ['recess']);
 
     // Full distribution task.
-    grunt.registerTask('dist', ['clean', 'dist-js']);
+    grunt.registerTask('dist', ['clean', 'dist-js','copy']);
 
     // Default task.
     grunt.registerTask('default', ['dist']);

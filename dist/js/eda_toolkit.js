@@ -1693,6 +1693,9 @@ var FolderDroplet = function(id, callback, opts) {
 			  	case "avi":
 			  		that.handleVideo(file);
 			  		break;
+				case "mov":
+					that.handleVideo(file);
+					break;
 			  	case "mp4":
 			  		that.handleVideo(file);
 			  		break;
