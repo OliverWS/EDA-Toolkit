@@ -16,12 +16,8 @@ var FolderDroplet = function(id, callback, opts) {
 	$(document).append($("<link>").attr("href","http://vjs.zencdn.net/c/video-js.css").attr("rel","stylesheet"));
 	
 	that.handleError = function(f) {
-		var bgoriginal = $(".dropzone").css("background-color");
-		var borderoriginal = $(".dropzone").css("border-color");
-		$(".dropzone").animate({"background-color":"#f2dede", "border-color":"#b94a48"}, 1000, function() {
-			$(this).animate({"background-color":bgoriginal, "border-color":borderoriginal}, 1000);
-		
-		});
+		$(".dropzone").addClass("error");
+		setTimeout(function() {$(".dropzone").removeClass("error");}, 1000);
 		
 	
 	};

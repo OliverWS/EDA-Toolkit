@@ -36,12 +36,8 @@ var EDADroplet = function(id, callback, opts) {
 			  	reader.readAsBinaryString(file);
 		      }
 		      else {
-		      	var bgoriginal = $(".dropzone").css("background-color");
-		      	var borderoriginal = $(".dropzone").css("border-color");
-		      	$(".dropzone").animate({"background-color":"#f2dede", "border-color":"#b94a48"}, 1000, function() {
-		      		$(this).animate({"background-color":bgoriginal, "border-color":borderoriginal}, 1000);
-		      	
-		      	});
+		      	$(".dropzone").addClass("error");
+		      	setTimeout(function() {$(".dropzone").removeClass("error");}, 1000);
 		      }
 			  return false;
 		}, {"label":"Drop EDA file here to view"});
