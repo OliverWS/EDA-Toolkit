@@ -1701,7 +1701,7 @@ var FolderDroplet = function(id, callback, opts) {
 			  
 			  
 			  return false;
-		}, {"label":"Drop folder here to view", "allowFolders":true});
+		}, {"label":"<i class='icon-folder-open'></i>  Drop folder here to view", "allowFolders":true});
 	
 
 
@@ -1936,6 +1936,7 @@ var Grapher = function(div, opts) {
 		});
 		
 		$(root).find("#channel-select li a").on("click", that.channelSelectHandler);
+		$(root).find("#channel-select li a").first().click();
 		$(root).find("#channel-select").on("sortupdate", function(evt) {
 			var selectedChannels = [];
 			$(root).find("#channel-select li a").each(function(i, el) {
