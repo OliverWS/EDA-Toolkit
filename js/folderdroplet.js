@@ -193,7 +193,7 @@ var FolderDroplet = function(id, callback, opts) {
 			  
 			  
 			  return false;
-		}, {"label":"Drop folder here to view", "allowFolders":true});
+		}, {"label":"<i class='icon-folder-open'></i>  Drop folder here to view", "allowFolders":true});
 	
 
 

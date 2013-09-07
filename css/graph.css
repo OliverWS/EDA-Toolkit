@@ -6,6 +6,11 @@ html {
 	user-select: none;
 }
 
+.delete-mode {
+	color: #d9534f;
+	background: white;
+	font-size: 20px;
+}
 
 
 .popover-inner {

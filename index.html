@@ -22,26 +22,33 @@
 		
 		<!-- EDA Toolkit -->
 		<script src="js/eda_toolkit.min.js" type="text/javascript"></script>
-		<link rel="stylesheet" href="css/viewer.css" type="text/css" />
 		
 	</head>
 	<body>
 		<div class="container-fluid">
 			<div class="header">
-				<h1>EDA Viewer<small> beta</small><span class="pull-right"><small>Folder:  </small><span id="foldername"></span></span></h1>
+				<h1>EDA Viewer<small> beta</small><span class="pull-right"><small></small><span id="foldername"></span></span></h1>
 			</div>
 			<hr />
 			
 			<div class="row-fluid">
 				<div class="span12 view-container">	
 						<div class="btn-group-vertical pull-right hide toolbar-buttons toolbar" data-toggle="buttons">
-						  <label class="btn btn-primary active" id="sync">
+							<button id="refresh" class="btn btn-primary" title="Reload"><i class="icon-refresh"></i></button>
+						  <button class="btn btn-primary" id="add" title="Add Graph" data-toggle="reset">
+						  	<i class="icon-plus"></i><span class="hide">Add Graph</span>
+						  </button>
+						  <label class="btn btn-primary" id="remove" title="Toggle Edit Mode">
+						  	 <input type="checkbox" checked><i class="icon-trash"></i><span class="hide">Remove Graph(s)</span>
+						  </label>
+						  
+						  <label class="btn btn-primary active" id="sync" title="Toggle Sync">
 						    <input type="checkbox" checked><i class="icon-lock"></i><span class="hide"> Sync Graphs</span>
 						  </label>
-						  <label class="btn btn-primary" id="showACC">
+						  <label class="btn btn-primary" id="showACC"  title="Show/Hide Accelerometer Data">
 						    <input type="checkbox"><i class="icon-eye-open"></i> <span class="hide">Show ACC</span>
 						  </label>
-						  <label class="btn btn-primary active" id="showVideo">
+						  <label class="btn btn-primary active" id="showVideo"  title="Show/Hide Video">
 						    <input type="checkbox" checked><i class="icon-film"></i> <span class="hide"></span>
 						  </label>
 						  
@@ -76,6 +83,9 @@
 		
 		
 		$(document).on("ready", function() {
+			$("#refresh").on("click",function() {
+				location.reload();
+			});
 			$("#showACC").on("click", function() {
 				setTimeout(function() {
 					var show = $("#showACC").hasClass("active");
@@ -103,18 +113,44 @@
 			
 			});
 			
-			$("#sync").on("click", function() {
-				setTimeout(function() {
-					var show = $("#sync").hasClass("active");
+			$("#sync input").on("change", function() {
+					var show =  ($("#sync input")[0].checked == true);
 					if (show) {
 						$("#sync").find("i").attr("class", "icon-lock");
 					}
 					else {
 						$("#sync").find("i").attr("class", "icon-unlock");
 					}
-				}, 50);
 			
 			});
+			
+			$("#remove input").on("change", function() {
+				var isActive =  ($("#remove input")[0].checked == true);
+				if (isActive) {
+					$(".handle i").attr("class","icon-trash delete-mode");
+					$(".handle").on("click", function() {
+						$(this).parent().animate({"margin-left":-1*$(document).width()},400, function() {
+							$(this).animate({"height":0},200,function() {
+								$(this).remove();
+							});
+						
+						});
+					});
+				}
+				else {
+					$(".handle i").attr("class","icon-reorder");
+					$(".handle").off("click");
+					$(".channel-select-dropdown").sortable({items: "li:has(.selected-channel)",cancel:".ignore"});
+					  $( "#viewer" ).sortable({
+					    placeholder: "placeholder",
+					    handle: ".handle",
+					    tolerance: "pointer"
+					  });
+					
+				}
+			
+			});
+			
 			
 		
 			$("#showACC input").on("change", function() {
@@ -160,54 +196,68 @@
 				$(".placeholder").css("height", $(this).height());
 			
 			});
-			
-			
-			drop = new FolderDroplet("viewer", function(graphs) {
-				console.log(graphers);
-				graphers = graphs;
-				$("div.edaGraph").each(function(i,el) {
-					$(el).find(".handle").remove();
-					$(el).prepend('<div class="handle"><i class="icon-sort"></i></div>');						
-				});
-				$(".channel-select-dropdown").sortable({items: "li:has(.selected-channel)",cancel:".ignore"});
-				  $( "#viewer" ).sortable({
-				    placeholder: "placeholder",
-				    handle: ".handle",
-				    tolerance: "pointer"
-				  });
-				$( ".video-js" ).resizable({
-				  aspectRatio: 16 / 9,
-				  animate: true
-				  
-				});
+			$("#add").on("click", function() {
+				if ($(".dropzone").length == 0) {
+					var id = "EDA"+($(".edaGraph").length+1);
+					$("#viewer").prepend($("<div>").attr("id",id).attr("class","edaGraph row-fluid"));
+					setupHandlers(id);
+				}
+				setTimeout(function() {$("#add").removeClass("active");}, 50);
 				
-				for (var i = 0; i < graphers.length; i++) {
-					var g = graphers[i];
-					g.onzoom = function(s,e,t) {
-						if($("#sync").hasClass("active")){
-							for (var n = 0; n < graphers.length; n++) {
-								if(n != i){
-									graphers[n].zoom(s,e,t);
+				
+			});
+			
+			setupHandlers = function(div) {
+				drop = new FolderDroplet(div, function(graphs) {
+					console.log(graphers);
+					graphers = graphs;
+					$("div.edaGraph").each(function(i,el) {
+						$(el).find(".handle").remove();
+						$(el).prepend('<div class="handle"><i class="icon-reorder"></i></div>');						
+					});
+					$(".channel-select-dropdown").sortable({items: "li:has(.selected-channel)",cancel:".ignore"});
+					  $( "#viewer" ).sortable({
+					    placeholder: "placeholder",
+					    handle: ".handle",
+					    tolerance: "pointer"
+					  });
+					$( ".video-js" ).resizable({
+					  aspectRatio: 16 / 9,
+					  animate: true
+					  
+					});
+					
+					for (var i = 0; i < graphers.length; i++) {
+						var g = graphers[i];
+						g.onzoom = function(s,e,t) {
+							if($("#sync").hasClass("active")){
+								for (var n = 0; n < graphers.length; n++) {
+									if(n != i){
+										graphers[n].zoom(s,e,t);
+									}
 								}
 							}
-						}
-		
-					};
-					
-					setTimeout(function() {
-						$(".toolbar-buttons").removeClass("hide");
-						if (g.datasource.channels.find("Tonic").length > 0) {
-							g.setChannels(["EDA","Tonic","Phasic"]);
-							g.channelSelectHandler();
-						}
-							  
-						  
-					}, 500);
-				}
 			
-			});
+						};
+						
+						setTimeout(function() {
+							$(".toolbar-buttons").removeClass("hide");
+							if (g.datasource.channels.find("Tonic").length > 0) {
+								g.setChannels(["EDA","Tonic","Phasic"]);
+								g.channelSelectHandler();
+							}
+							
+						}, 500);
+					}
+					
+					
+				});
+			
+			};
+			setupHandlers("viewer");
+			$("label").tooltip({"placement":"left",delay: { show: 300, hide: 100 },container:"body"});
+			
 		});
-		
 	
 		
 	</script>
