@@ -1,1 +1,1 @@
-version = {build:}
+var version = {build:}
