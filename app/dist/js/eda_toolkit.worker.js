@@ -170,6 +170,12 @@ Date.prototype.toQFormat = function() {
 	return output;
 };
 
+Array.prototype.isValid = function() {
+	 var arr = this;
+	 return (arr.filter(function(d){ return !isNaN(d);}).length == arr.length);
+};
+
+
 
 parseDate = function(val) {
 	//2011-04-27 18:55:39 Offset:-04
@@ -512,7 +518,7 @@ np.sum = function(values) {
 
 
 Array.prototype.max = function(){
-	var arr = this;
+	var arr = this.filter(function(d) {return !isNaN(d)});
 	var max = -Infinity;
 	for(var n=0; n < arr.length; n++){
 		if(arr[n] > max){
@@ -523,7 +529,7 @@ Array.prototype.max = function(){
 }
 
 Array.prototype.min = function(){
-	var arr = this;
+	var arr = this.filter(function(d) {return !isNaN(d)});
 	var min = Infinity;
 	for(var n=0; n < arr.length; n++){
 		if(arr[n] < min){
@@ -878,12 +884,8 @@ signals.peaks = function(data, width) {
 
 
 
-//importScripts("jquery.js");
-//importScripts("numjs.js");
-//importScripts("signals.js");
-//importScripts("https://raw.github.com/eligrey/BlobBuilder.js/master/BlobBuilder.min.js");
 var separator = "---------------------------------------------------------\r\n";
-
+var LF = "\n";
 var console = {};
 console.log = function(msg) {
 	self.postMessage({cmd:"console","msg":msg});
@@ -930,19 +932,103 @@ self.addEventListener('message', function(e) {
 }, false);
 
 self.parse = function(text) {
-	var headerPlusBody = text.toString().split(separator);
-	var headers = headerPlusBody[0].split("\n");
-	var parsedHeaders = self.parseHeaders(headers);	
-	if(parsedHeaders["File Version"] < 1.1) {
-		self.parseTextData(headerPlusBody[1], ["Z","Y","X","Battery","Temperature","EDA"]);
-	}
-	else if((parsedHeaders["File Version"] < 1.5) && (parsedHeaders["File Version"] > 1.09)) {
-		self.parseTextData(headerPlusBody[1], parsedHeaders["Column Names"]);
-	}
-	else {
-		self.parseBinaryData(headerPlusBody[1], ["Z","Y","X","Battery","Temperature","EDA"]);
+	var type = self.detectFormat(text.toString());
+	switch (type) {
+		case "edafile":
+			var headerPlusBody = text.toString().split(separator);
+			var headers = headerPlusBody[0].split(LF);
+			var parsedHeaders = self.parseHeaders(headers);	
+		
+			if(parsedHeaders["File Version"] < 1.1) {
+				self.parseTextData(headerPlusBody[1], ["Z","Y","X","Battery","Temperature","EDA"]);
+			}
+			else if((parsedHeaders["File Version"] < 1.5) && (parsedHeaders["File Version"] > 1.09)) {
+				self.parseTextData(headerPlusBody[1], parsedHeaders["Column Names"]);
+			}
+			else {
+				self.parseBinaryData(headerPlusBody[1], ["Z","Y","X","Battery","Temperature","EDA"]);
+			}
+			break;
+		case "csv":
+			var headerPlusBody = text.toString().split(LF);
+			
+			var headers = headerPlusBody.slice(0, 4);
+			console.log("Headers: " + headers.join("|"));
+			var body = text.toString().replace(headers[0]+LF, "");
+			var parsedHeaders = self.parseDSVHeaders(headers,",");	
+			console.log("Parsed Headers: " + parsedHeaders["Column Names"].join(","));
+			console.log(body);
+			self.parseTextData(body, parsedHeaders["Column Names"]);
+			break;
+		case "tsv":
+			var headerPlusBody = text.toString().split(LF);
+			
+			var headers = headerPlusBody.slice(0, 4);
+			console.log("Headers: " + headers.join("|"));
+			var body = text.toString().replace(headers[0]+LF, "");
+			var parsedHeaders = self.parseDSVHeaders(headers,"\t");	
+			console.log("Parsed Headers: " + parsedHeaders["Column Names"].join("\t"));
+			console.log(body);
+			self.parseTextData(body, parsedHeaders["Column Names"]);
+			break;
+		
+		default:
+			var headerPlusBody = text.toString().split(LF);
+			var headers = headerPlusBody.slice(0, 4);
+			var body = text.toString().replace(headers[0]+LF, "");
+			var parsedHeaders = self.parseDSVHeaders(headers,",");	
+			self.parseTextData(body, parsedHeaders["Column Names"]);
+			break;
+			
 	}
 }
+
+self.detectFormat = function(text) {
+	if (text.indexOf("\n") == -1) {
+		LF = "\r";
+	}
+
+	if (text.indexOf(separator) > -1) {
+		LF = "\r\n";
+		return "edafile";
+	}
+	else if ((text.indexOf("\t") > -1) && !(text.indexOf(",") > -1)) {
+		return "tsv";
+	}
+	else {
+		return "csv";
+	}
+
+
+};
+
+self.parseDSVHeaders = function(metadata,del) {
+	colNames = metadata[0].replace(/\n/g,"").split(del);
+	var headers = {};
+	headers["Column Names"] = colNames;
+	//now we have to infer sample rate based on some samples. Assume that time column is left-most
+	var rows = [];
+	for (var i = 1; i < metadata.length; i++) {
+		rows.push(metadata[i].split(del));
+	}
+	if (rows.length > 1) {
+		try {
+			var t1 = Date.parse(rows[0][0]);
+			var t2 = Date.parse(rows[1][0]);
+			var fs = 1000.0/(t2-t1);
+			headers["Sampling Rate"] = fs;
+		}
+		catch (error) {
+			headers["Sampling Rate"] = 1.0;
+		}
+	}
+	self.metadata = metadata;
+	headers["Start Time"]  = new Date( t1 );
+	self.postMessage({cmd:"metadata", data:headers});
+	
+	return headers;
+
+};
 
 self.parseHeaders = function(metadata) {
 	var headers = {};
@@ -1112,7 +1198,7 @@ self.export = function(opts) {
 	var channels = ["Z","Y","X","Batt","Temperature","EDA"];
 	//Generate headers
 	var headers = "";
-	headers += "Log File Created by EDA Toolkit - 2012\r\n";
+	headers += "Log File Created by EDA Toolkit - " + (new Date()).getYear() +"\r\n";
 	headers += "File Version" + ": " + 1.01 + "\r\n";
 	headers += "Firmware Version" + ": " + metadata["Firmware Version"]+ "\r\n";
 	headers += "UUID" + ": " + metadata["UUID"]+ "\r\n";
@@ -1134,7 +1220,7 @@ self.export = function(opts) {
 	}
 	if (opts.useBlob == true) {
 		var bb = new BlobBuilder;
-		bb.append(csv);
+		bb.push(csv);
 		self.postMessage({cmd:"export", data:bb.getBlob("text/plain;charset=utf-8")});
 		
 	}
@@ -1153,7 +1239,7 @@ self.parseTextData = function(body, columnHeaders) {
 		}
 	}
 	data.markers = [];
-	var lines = body.split("\n");
+	var lines = body.split(LF);
 	var length = lines.length;
 	for(var n=0; n < length; n++) {
 		if((n % 1000) == 0) { 
