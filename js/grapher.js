@@ -179,7 +179,7 @@ var Grapher = function(div, opts) {
 		});
 		
 		$(root).find("#channel-select li a").on("click", that.channelSelectHandler);
-		$(root).find("#channel-select li a").first().click();
+		//$(root).find("#channel-select li a").first().click();
 		$(root).find("#channel-select").on("sortupdate", function(evt) {
 			var selectedChannels = [];
 			$(root).find("#channel-select li a").each(function(i, el) {
@@ -217,9 +217,15 @@ var Grapher = function(div, opts) {
 	
 	this.renderData = function(eda) {
 		that.datasource = eda;
-		if ((that.datasource.channels.find("Tonic").length > 0) && (that.datasource.channels.find("Phasic").length > 0) ) {
+		if ((that.datasource.channels.find("Tonic").length > 0) && (that.datasource.channels.find("Phasic").length > 0)  && (that.datasource.channels.find("EDA").length > 0)) {
 			console.log("Turning on tonic and phasic since they are present");
 			that.channels = ["EDA","Tonic","Phasic"];
+		}
+		else if ((that.datasource.channels.find("EDA").length > 0)) {
+			that.channels = ["EDA"];
+		}
+		else {
+			that.channels = that.datasource.channels;
 		}
 		
 		var el = this.container;
@@ -234,7 +240,7 @@ var Grapher = function(div, opts) {
 		
 		that.datasource.getMultiChannelDataForOffsetRange(that.channels, 0, that.datasource.data.length-1, that.w, function(data) {
 			that.renderSVG(data);
-			
+			//that.setChannels(that.channels);
 		});		
 		
 	};
@@ -273,7 +279,7 @@ var Grapher = function(div, opts) {
 		
 		for (var i = 0; i < channels.length; i++) {
 			var c = channels[i];
-			if (that.datasource.data.hasOwnProperty(c)) {
+			if (that.datasource.data.hasOwnProperty(c) && that.datasource.data[c].isValid()) {
 				validChannels.push(c);
 				if (that.channels.find(c).length == 0) {
 					//This is a new channel
@@ -358,9 +364,10 @@ var Grapher = function(div, opts) {
 		}
 		that.w = w;
 		that.h = h;
-		that.datasource.x.domain([0, data.map(function(d){return d.length}).max()]);
+		//TODO
+		that.datasource.x.domain([0, that.w]);
 		//Set x according to the shortest waveform to ensure valid data for whole container
-		var x = d3.scale.linear().domain([0, that.w]).range([0, w]);
+		var x = d3.scale.linear().domain([0, data.map(function(d){return d.length}).max()]).range([0, w]);
 		if(that.datasource.y && !that.autoscale){
 			//console.log("EDA Range: " + that.datasource.y.range() + " | Data: " + data.min() + " to " + data.max());
 			var yrange = [ that.datasource.y.range()[1], that.datasource.y.range()[0] ];
@@ -397,9 +404,8 @@ var Grapher = function(div, opts) {
 		  .append("svg")
 		  	.attr("class","graph")
 		    .attr("width", w + 2*p)
-		    .attr("height", h + 3*p)
-		    .on('mousedown',that.mousedown)
-		    .on('mouseup',that.mouseup);
+		    .attr("height", h + 3*p);
+		
 		edaContainer = that.svg.append("g").attr("transform", "translate(" + 2*p + "," + p + ")");
 		edaContainer.append("defs").append("svg:clipPath")
 		.attr("id", "edaclip")
@@ -410,9 +416,12 @@ var Grapher = function(div, opts) {
 		.attr("width", w)
 		.attr("height", h);
 		that.datasourceContainer = edaContainer;
+		that.datasourceContainer
+			.on('mousedown',that.mousedown)
+			.on('mouseup',that.mouseup);
 		
 		
-		that.renderGrid(that.datasourceContainer, "EDA");
+		that.renderGrid(that.datasourceContainer, that.channels[0]);
 		
 		for (var i = 0; i < that.channels.length; i++) {
 			data[i].unshift(0.0);
@@ -515,27 +524,29 @@ var Grapher = function(div, opts) {
 	}
 	
 	this.mousedown = function() {
-		//console.log( "Mouse click at: " + d3.mouse(this));
+		console.log( "Mouse click at: " + d3.mouse(this));
 		that.zoom_rect.p1 = d3.mouse(this);
 		that.zoom_rect.p2 = d3.mouse(this);
+		console.log(d3.mouse(this));
 		that.datasourceContainer.select("rect.zoomrect").remove(); //In case it already exists for some reason
 		that.datasourceContainer
 			.append("svg:rect")
 			.attr("class", "zoomrect")
-			.attr("x",function() {return that.zoom_rect.p1[0];})
-			.attr("y",function() {return that.zoom_rect.p1[1];})
+			.attr("x",that.zoom_rect.p1[0])
+			.attr("y",that.zoom_rect.p1[1])
 			.style("stroke","red")
 			.style("stroke-width", 2)
 			.style("fill", "rgba(255,0,0,0)")
 			.attr("width", Math.abs(that.zoom_rect.p1[0] - that.zoom_rect.p2[0]))
 			.attr("height", Math.abs(that.zoom_rect.p1[1] - that.zoom_rect.p2[1]));
 		that.datasourceContainer.on("mousemove", function() {
-			var mouse = d3.mouse(this);
-			that.zoom_rect.p2 = mouse;
-			var x = (that.zoom_rect.p1[0] < that.zoom_rect.p2[0]) ? that.zoom_rect.p1[0] : that.zoom_rect.p2[0];	
-			var y = (that.zoom_rect.p1[1] < that.zoom_rect.p2[1]) ? that.zoom_rect.p1[1] : that.zoom_rect.p2[1];		
+			that.zoom_rect.p2 = d3.mouse(this);
+			console.log("Mouse move to: " + that.zoom_rect.p2);
+			var x = [that.zoom_rect.p1[0],that.zoom_rect.p2[0]].min();	
+			var y = [that.zoom_rect.p1[1],that.zoom_rect.p2[1]].min();		
 			var zoom_w = Math.abs(that.zoom_rect.p1[0] - that.zoom_rect.p2[0]);
 			var zoom_h = Math.abs(that.zoom_rect.p1[1] - that.zoom_rect.p2[1]);
+			console.log("Zoom Width: "+ zoom_w);
 			if (that.autoscale) {
 				that.datasourceContainer.select("rect.zoomrect")
 					.attr("x", x)
@@ -646,7 +657,7 @@ var Grapher = function(div, opts) {
 		var zoom_w = Math.abs(that.zoom_rect.p1[0] - that.zoom_rect.p2[0]);
 		var zoom_h = Math.abs(that.zoom_rect.p1[1] - that.zoom_rect.p2[1]);
 		
-		if (zoom_w > 3 && zoom_h > 3) {
+		if (zoom_w > 3) {
 			that.zoom();
 		}
 	};
@@ -711,8 +722,8 @@ var Grapher = function(div, opts) {
 			data = data.slice(1,data.length-1);
 		}
 		console.log(data);
-		that.datasource.x.domain([0, data.map(function(d){return d.length}).max()]);
-		
+		//that.datasource.x.domain([0, data.map(function(d){return d.length}).max()]);
+		that.datasource.x.domain([0, that.w]);
 		var x = d3.scale.linear().domain([0, data.map(function(d){return d.length}).max()]).range([0, that.w]);
 		if(that.datasource.y && !that.autoscale){
 			var yrange = [ that.datasource.y.range()[1], that.datasource.y.range()[0] ];
@@ -756,7 +767,7 @@ var Grapher = function(div, opts) {
 		    .y(function(d) { return  y(d); });
 		that.data = data;
 		
-		that.renderGrid(that.datasourceContainer,"EDA",x,y);
+		that.renderGrid(that.datasourceContainer,that.channels[0],x,y);
 		if ( that.showAcc) {
 			that.renderGrid(that.datasourceContainer, "Acc", that.x,that.y2);
 		}
@@ -816,12 +827,15 @@ var Grapher = function(div, opts) {
 	};
 	
 	this.renderGrid = function(edaContainer, channel, x, y,h,w) {
-		var channel = channel || "EDA";
+		var channel = channel || that.channels[0];
 		var x = x || that.x;
 		var y = y || that.y;
 		var w = w || that.w;
 		var h = h || (y.range().max()- y.range().min());
 		var p = this.p;
+		console.log("Rendering grid...");
+		console.log(x.domain());
+		console.log(x.range());
 		that.datasourceContainer.selectAll("#background-rect-"+channel).remove();
 //		if (that.datasourceContainer.select("rect#background-rect-"+channel)[0].length == 0) {
 			var background = edaContainer.append("svg:rect")

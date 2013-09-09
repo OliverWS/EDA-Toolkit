@@ -1,7 +1,7 @@
 
 var qLogFile =  function () {
 	var that = this;
-	this.worker = new Worker("js/eda_toolkit.worker.min.js");
+	this.worker = new Worker("js/eda_toolkit.worker.js");
 	that.isEDAFile = true;
 	that.didAlreadyLoad = false;
 	that.filename = "EDA File";
@@ -12,7 +12,7 @@ var qLogFile =  function () {
 		////console.log(event);
 		switch (msg.cmd) {
 		  case 'console':
-		    //console.log(msg.msg);
+//		    console.log(msg.msg);
 		    break;
 		  case 'metadata':
 		    that.metadataDidLoad(msg.data);
@@ -115,7 +115,7 @@ var qLogFile =  function () {
 		this.metadata = metadata;
 		this.startTime = this.metadata["Start Time"];
 		this.sampleRate = this.metadata["Sampling Rate"];
-		this.channels = this.metadata["Column Names"];
+		this.channels = this.metadata["Column Names"].filter(function(d){return !((d.toLowerCase().indexOf("time") > -1) || (d.toLowerCase().indexOf("date") > -1)  );});
 	
 	};
 	

@@ -27,7 +27,8 @@ module.exports = function(grunt) {
                       'js/eda_toolkit.js',
                       'js/edadroplet.js',
                       'js/folderdroplet.js',
-                      'js/grapher.js'],
+                      'js/grapher.js',
+                      'js/version.js'],
                 dest: 'dist/js/<%= pkg.name %>.js'
             },
             edatoolkitworker: {
@@ -42,7 +43,7 @@ module.exports = function(grunt) {
         uglify: {
             options: {
                 banner: '<%= banner %>',
-                compress: true
+                compress: false
             },
             edatoolkitworker:{
                 files:{
@@ -56,6 +57,7 @@ module.exports = function(grunt) {
                 }
             }
         },
+        
         copy: {
           main: {
             files: [
@@ -88,7 +90,6 @@ module.exports = function(grunt) {
 
     // Full distribution task.
     grunt.registerTask('dist', ['clean', 'dist-js','copy']);
-
     // Default task.
     grunt.registerTask('default', ['dist']);
 };

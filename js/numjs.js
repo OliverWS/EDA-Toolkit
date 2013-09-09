@@ -165,6 +165,12 @@ Date.prototype.toQFormat = function() {
 	return output;
 };
 
+Array.prototype.isValid = function() {
+	 var arr = this;
+	 return (arr.filter(function(d){ return !isNaN(d);}).length == arr.length);
+};
+
+
 
 parseDate = function(val) {
 	//2011-04-27 18:55:39 Offset:-04
@@ -507,7 +513,7 @@ np.sum = function(values) {
 
 
 Array.prototype.max = function(){
-	var arr = this;
+	var arr = this.filter(function(d) {return !isNaN(d)});
 	var max = -Infinity;
 	for(var n=0; n < arr.length; n++){
 		if(arr[n] > max){
@@ -518,7 +524,7 @@ Array.prototype.max = function(){
 }
 
 Array.prototype.min = function(){
-	var arr = this;
+	var arr = this.filter(function(d) {return !isNaN(d)});
 	var min = Infinity;
 	for(var n=0; n < arr.length; n++){
 		if(arr[n] < min){

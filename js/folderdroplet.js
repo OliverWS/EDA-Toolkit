@@ -174,6 +174,9 @@ var FolderDroplet = function(id, callback, opts) {
 			  	case "csv":
 			  		that.handleEDA(file);
 			  		break;
+			  	case "tsv":
+			  		that.handleEDA(file);
+			  		break;
 			  	case "avi":
 			  		that.handleVideo(file);
 			  		break;
