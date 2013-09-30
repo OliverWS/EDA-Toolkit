@@ -24,7 +24,7 @@
 		
 	</head>
 	<body>
-		<div class="container">
+		<div class="container-fluid">
 			<div class="header">
 				<h1>EDA Toolkit<small id="version"></small><span class="pull-right"><small></small><span id="foldername"></span></span></h1>
 			</div>
@@ -102,7 +102,7 @@
 		
 		$(document).on("ready", function() {
 			if (version) {
-				$("#version").html("v0." + version.build);
+				$("#version").html("v." + version.build);
 			}
 			$("#refresh").on("click",function() {
 				location.reload();
