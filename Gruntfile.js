@@ -20,7 +20,8 @@ module.exports = function(grunt) {
                 stripBanners: false
             },
             edatoolkit: {
-                src: ['js/numjs.js',
+                src: [
+                	  'js/numjs.js',
                       'js/signals.js',
                       'js/dropzone.js',
                       'js/videodroplet.js',

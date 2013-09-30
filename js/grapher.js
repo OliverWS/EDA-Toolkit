@@ -236,7 +236,6 @@ var Grapher = function(div, opts) {
 		that.datasource.x = d3.scale.linear().domain([0, that.w]).range([0, that.datasource.data.length]);
 		that.datasource.y = d3.scale.linear().domain([0, that.h]).range([that.channels.map(function(d) {return that.datasource.data[d].max();}).max(), that.channels.map(function(d) {return that.datasource.data[d].min();}).min()]);
 		
-		localStorage.range = {xmin:0,xmax:that.datasource.data.length-1,ymin:0,ymax:10};
 		
 		that.datasource.getMultiChannelDataForOffsetRange(that.channels, 0, that.datasource.data.length-1, that.w, function(data) {
 			that.renderSVG(data);
@@ -344,7 +343,14 @@ var Grapher = function(div, opts) {
 		
 		
 	};
-	
+	this.unpackComment = function(comment) {
+		comment = comment.replace(/^\s+|\s+$/g,'');
+		if (comment[0] == "|") {
+			comment = comment.slice(1,comment.length-1);
+		}
+		var output = comment.replace(/\|/g,"<br />");
+		return output;
+	};
 	
 	this.renderSVG = function(data, acc) {
 		that.data = data;
@@ -451,7 +457,7 @@ var Grapher = function(div, opts) {
 				edaContainer.append("circle")
 					.datum(d)
 					.attr("class","marker")
-					.attr("title", function(d) {return d.comment + " | Time: " + that.datasource.timeForOffset(d.index).toTimeString()})
+					.attr("title", function(d) {return that.unpackComment(d.comment + " | Time: " + that.datasource.timeForOffset(d.index).toTimeString());})
 					.attr("cx", function(d) {return that.x(that.datasource.x.invert(d.index));})
 					.attr("cy", function(d) {
 						var x = Math.round(that.x(that.datasource.x.invert(d.index)));
@@ -470,9 +476,13 @@ var Grapher = function(div, opts) {
 				
 				$("circle.marker").tooltip({
 					    "container": "body",
+					    html: true,
 					    "placement": "top"});
 			
 			}
+		}
+		if(that.datasource.rangeMarkers && (that.datasource.rangeMarkers.length > 0)){
+			that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
 		}
 		if(that.readyCallback && !that.didLoad){
 		   that.didLoad = true;
@@ -527,32 +537,54 @@ var Grapher = function(div, opts) {
 		console.log( "Mouse click at: " + d3.mouse(this));
 		that.zoom_rect.p1 = d3.mouse(this);
 		that.zoom_rect.p2 = d3.mouse(this);
-		console.log(d3.mouse(this));
+		//console.log(d3.mouse(this));
+		$(that.graph).find("rect.zoomrect").tooltip("destroy");
 		that.datasourceContainer.select("rect.zoomrect").remove(); //In case it already exists for some reason
 		that.datasourceContainer
 			.append("svg:rect")
 			.attr("class", "zoomrect")
 			.attr("x",that.zoom_rect.p1[0])
 			.attr("y",that.zoom_rect.p1[1])
+			.attr("title", "")
 			.style("stroke","red")
 			.style("stroke-width", 2)
-			.style("fill", "rgba(255,0,0,0)")
+			.style("fill", "rgba(255,0,0,0.2)")
 			.attr("width", Math.abs(that.zoom_rect.p1[0] - that.zoom_rect.p2[0]))
 			.attr("height", Math.abs(that.zoom_rect.p1[1] - that.zoom_rect.p2[1]));
+			
 		that.datasourceContainer.on("mousemove", function() {
 			that.zoom_rect.p2 = d3.mouse(this);
-			console.log("Mouse move to: " + that.zoom_rect.p2);
+			that.datasourceContainer.on("mouseup",that.mouseup);
+			//console.log("Mouse move to: " + that.zoom_rect.p2);
 			var x = [that.zoom_rect.p1[0],that.zoom_rect.p2[0]].min();	
 			var y = [that.zoom_rect.p1[1],that.zoom_rect.p2[1]].min();		
 			var zoom_w = Math.abs(that.zoom_rect.p1[0] - that.zoom_rect.p2[0]);
 			var zoom_h = Math.abs(that.zoom_rect.p1[1] - that.zoom_rect.p2[1]);
-			console.log("Zoom Width: "+ zoom_w);
+			//console.log("Zoom Width: "+ zoom_w);
+			
+			var t1 = that.datasource.timeForOffset(that.datasource.x([that.zoom_rect.p1[0],that.zoom_rect.p2[0]].min()));
+			var t2 = that.datasource.timeForOffset(that.datasource.x([that.zoom_rect.p1[0],that.zoom_rect.p2[0]].max()));
 			if (that.autoscale) {
 				that.datasourceContainer.select("rect.zoomrect")
 					.attr("x", x)
 					.attr("y", 0)
+					.attr("title","<i class='icon-time'></i> " + t1.shortString() + " to " + t2.shortString())
 					.attr("width", zoom_w)
 					.attr("height", that.h);
+					
+				if ($(".tooltip-inner").length == 0) {
+					$(that.graph).find("rect.zoomrect").tooltip({
+						    "container": "body",
+						    "placement": "top",
+						    html: true,
+						    trigger: "manual",
+						    delay: { show: 0, hide: 1000 }}).tooltip("show");
+				}	
+				else {
+					$(".tooltip-inner").first().html(that.datasourceContainer.select("rect.zoomrect").attr("title"));
+					
+				}
+				
 				
 			}
 			else {
@@ -581,7 +613,7 @@ var Grapher = function(div, opts) {
 					.css("position","absolute")
 					.css("left", $(that.container).width() - 44 - 108/2)
 					.css("top",bounds.top + scrollY + that.p + 10)
-					.html("<i class='glyphicon glyphicon-zoom-out'></i> Zoom Out")
+					.html("<i class='icon-zoom-out'></i> Zoom Out")
 					.on("click", function(e) {
 						$("button.clearButton").remove();
 						that.renderUpdate("full");
@@ -652,24 +684,222 @@ var Grapher = function(div, opts) {
 	};
 	
 	this.mouseup = function() {
+		$(that.graph).find("rect.zoomrect").tooltip("destroy");
 		that.datasourceContainer.on("mousemove", null);
-		that.datasourceContainer.select("rect.zoomrect").remove();
+	
+		
+		
 		var zoom_w = Math.abs(that.zoom_rect.p1[0] - that.zoom_rect.p2[0]);
 		var zoom_h = Math.abs(that.zoom_rect.p1[1] - that.zoom_rect.p2[1]);
-		
+		var start = that.datasource.timeForOffset( int( that.datasource.x( ([that.zoom_rect.p1[0],that.zoom_rect.p2[0]]).min() ) ) );
+		var end = that.datasource.timeForOffset( int( that.datasource.x( ([that.zoom_rect.p1[0],that.zoom_rect.p2[0]]).max() ) ) );
 		if (zoom_w > 3) {
-			that.zoom();
+			var ZOOM_ID = "ZOOM_ID_" + parseInt(Math.random()*1000,10).toString();
+			var ADD_RANGE_ID = "ADD_RANGE_ID_" + parseInt(Math.random()*1000,10).toString();
+			var COMMENT_ID = "COMMENT_ID_" + parseInt(Math.random()*1000,10).toString();
+			var popoverContent = "<input type=\"text\" class=\"form-control\" placeholder=\"Comment\" id=\"COMMENT_ID\"><br /><div class=\"btn-group\"><button class='btn btn-default' id='ZOOM_ID'><i class='icon-zoom-in'></i> Zoom</button><button class='btn btn-primary' id='ADD_RANGE_ID'><i class='icon-map-marker'></i> Add Range Marker</button></div>".replace("ZOOM_ID",ZOOM_ID).replace("ADD_RANGE_ID",ADD_RANGE_ID).replace("COMMENT_ID",COMMENT_ID);
+			
+			$(that.graph).find("rect.zoomrect").popover({
+				html: true,
+				container: 'body',
+				placement: 'top',
+				trigger: 'manual',
+				content: popoverContent
+			});
+			
+			$(that.graph).find("rect.zoomrect").popover('show');
+			
+			$("button#"+ZOOM_ID).on("click", function() {
+				$(that.graph).find("rect.zoomrect").popover('destroy');
+				that.datasourceContainer.select("rect.zoomrect").remove();
+				that.zoom();
+			});
+			
+			$("button#"+ADD_RANGE_ID).on("click", function() {
+				$(that.graph).find("rect.zoomrect").popover('destroy');
+				that.datasourceContainer.select("rect.zoomrect").remove();
+				var comment = $("input#" + COMMENT_ID).attr("value");
+				that.addRangeMarker(start,end, comment);
+				
+			});
+			
+			
+			
+			
+		}
+		else {
+			that.datasourceContainer.select("rect.zoomrect").remove();
 		}
 	};
 	
+	this.addRangeMarker = function(start,end, comment) {
+		if (!that.datasource.hasOwnProperty("rangeMarkers")) {
+			that.datasource.rangeMarkers = new Array();
+		}
+		console.log("Start: " + start + " End: " + end + " Comment: " + comment);
+		that.datasource.rangeMarkers.push({"startTime":start,"endTime":end, "comment": comment});
+		that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
+		that.updateCache();
+	
+	};
+	
+	this.updateCache = function() {
+		localStorage[that.datasource.hash()] = JSON.stringify({"rangeMarkers":that.datasource.rangeMarkers});
+	
+	};
+	
+	this.editRangeMarker = function(event) {
+		var rect = this;
+		console.log("Opening edit range marker dialogue");
+		console.log(rect);
+		that.datasourceContainer.on("mousedown",null);
+		var DONE_ID = "DONE_ID_" + parseInt(Math.random()*1000,10).toString();
+		var COMMENT_ID = "COMMENT_ID_" + parseInt(Math.random()*1000,10).toString();
+		var REMOVE_ID = "REMOVE_ID_" + parseInt(Math.random()*1000,10).toString();
+		var popoverContent = "<button class='btn btn-danger pull-left' id='REMOVE_ID'>Delete</button><button class='btn btn-default pull-right' id='DONE_ID'>Save</button>".replace("DONE_ID",DONE_ID).replace("REMOVE_ID",REMOVE_ID);
+		d3.select(rect).on("mousedown", null);
+		d3.select(rect).on("click", null);
+		$(rect).attr("title",null);
+		$(rect).attr("data-original-title",null);
+		$(rect).popover({
+			html: true,
+			title: '<input type="text" class="form-control" placeholder="Comment" id="COMMENT_ID">'.replace("COMMENT_ID",COMMENT_ID),
+			container: 'body',
+			placement: 'top',
+			trigger: 'manual',
+			content: popoverContent
+		});
+		var x1 = $(rect).attr("x")*1.0;
+		var x2 = x1 + $(rect).attr("width")*1.0;
+		var leftHandle = that.datasourceContainer.append("svg:g")
+			.attr("class", "rangemarker edit");
+		leftHandle.append("svg:line")
+				.style("stroke", "black")
+				.style("stroke-width", "4")
+				.style("cursor","pointer")
+				.attr("y1", 0)
+				.attr("y2", that.h)
+				.attr("x1", x1)
+				.attr("x2", x1);
+		leftHandle.append("svg:circle")
+			.attr("cx", x1)
+			.attr("cy", 0)
+			.attr("r", 5)
+			.style("stroke", "black")
+			.style("stroke-width", "2")
+			.style("cursor","pointer");
+		leftHandle.on("mousedown", function() {
+			var handle = d3.select(this);
+			that.datasourceContainer.on("mousemove", function() {
+				var mousex = d3.mouse(this)[0];
+				console.log("Left Handle: " + mousex);
+				leftHandle.select("line").attr("x1",mousex);
+				leftHandle.select("line").attr("x2", mousex);
+				leftHandle.select("circle").attr("cx", mousex);
+				d3.select(rect)
+					.attr("x", leftHandle.select("line").attr("x1"))
+					.attr("width", rightHandle.select("line").attr("x1")*1.0 - leftHandle.select("line").attr("x1")*1.0);
+				
+			});
+			that.datasourceContainer.on("mouseup", function() {
+				that.datasourceContainer.on("mousemove",null);
+			});
+		});
+				
+		var rightHandle = that.datasourceContainer.append("svg:g")
+			.attr("class", "rangemarker edit");
+		rightHandle.append("svg:line")
+				.style("stroke", "black")
+				.style("stroke-width", "4")
+				.style("cursor","pointer")
+				.attr("y1", 0)
+				.attr("y2", that.h)
+				.attr("x1", x2)
+				.attr("x2", x2);
+		rightHandle.append("svg:circle")
+			.attr("cx", x2)
+			.attr("cy", that.h)
+			.attr("r", 5)
+			.style("stroke", "black")
+			.style("stroke-width", "2")
+			.style("cursor","pointer");
+		
+		rightHandle.on("mousedown", function() {
+					var handle = d3.select(this);
+					that.datasourceContainer.on("mousemove", function() {
+						var mousex = d3.mouse(this)[0];
+						rightHandle.select("line").attr("x1",mousex);
+						rightHandle.select("line").attr("x2", mousex);
+						rightHandle.select("circle").attr("cx", mousex);
+						d3.select(rect)
+							.attr("x", leftHandle.select("line").attr("x1"))
+							.attr("width", rightHandle.select("line").attr("x1")*1.0 - leftHandle.select("line").attr("x1")*1.0);
+					});
+					that.datasourceContainer.on("mouseup", function() {
+						that.datasourceContainer.on("mousemove",null);
+					});
+				});
+		$(rect).popover('show');
+		var idx = d3.select(rect).attr("data-index")*1;
+		$("input#" + COMMENT_ID).attr("value",that.datasource.rangeMarkers[idx].comment);
+		$("button#"+DONE_ID).on("click", function() {
+			$(rect).popover('destroy');
+			leftHandle.remove();
+			rightHandle.remove();
+			that.datasourceContainer.on("mousedown",that.mousedown);
+			var xmin = d3.select(rect).attr("x")*1.0;
+			var xmax = d3.select(rect).attr("width")*1.0+xmin;
+			var start = that.datasource.timeForOffset( int( that.datasource.x( xmin ) ) );
+			var end = that.datasource.timeForOffset( int( that.datasource.x( xmax ) ) );
+			var idx = d3.select(rect).attr("data-index")*1;
+			
+			that.datasource.rangeMarkers[idx] = {"startTime":start,"endTime":end, "comment":$("input#" + COMMENT_ID).attr("value") };
+			that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
+			that.updateCache();
+		});	
+		$("button#"+REMOVE_ID).on("click", function() {
+			$(rect).popover('destroy');
+			leftHandle.remove();
+			rightHandle.remove();
+			that.datasourceContainer.on("mousedown",that.mousedown);
+			var idx = d3.select(rect).attr("data-index")*1;
+			
+			that.datasource.rangeMarkers.splice(idx,1);
+			that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
+			that.updateCache();
+		});	
+		
+		
+	
+	};
+	
+	this.renderRangeMarkers = function(container,x,y) {
+		if(that.datasource.hasOwnProperty("rangeMarkers")){
+			console.log("Rendering range markers");
+			container.selectAll("rect.rangemarker").remove();
+			for (var i = 0; i < that.datasource.rangeMarkers.length; i++) {
+				var marker = that.datasource.rangeMarkers[i];
+				marker.startTime = new Date(marker.startTime);
+				marker.endTime = new Date(marker.endTime);
+				var markerRect = container.append("svg:rect")
+					.attr("class","rangemarker")
+					.attr("data-index",i)
+					.attr("x", that.datasource.x.invert(that.datasource.offsetForTime(marker.startTime) ))
+					.style("fill","#333")
+					.style("opacity",0.8)
+					.attr("y", 0)
+					.attr("width", that.datasource.x.invert(that.datasource.offsetForTime(marker.endTime)) - that.datasource.x.invert(that.datasource.offsetForTime(marker.startTime) ))
+					.attr("height", that.h)
+					.on("click", that.editRangeMarker);
+				console.log(markerRect);
+			}
+		}
+	
+	};
 	
 	this.updateCursor = function(time) {
 		//console.log(time);
 		var offset = that.datasource.offsetForTime(time);
-		
-//		if (that.datasource.events && that.eventIdx && that.eventIdx.find(offset).length > 0) {
-//		}
-		//console.log("EDA offset for cursor: " + offset +" transformed: " + that.datasource.x.invert(offset) );
 		that.datasourceContainer.selectAll("line.cursor").remove();
 		
 		if (that.followCursor) {
@@ -703,7 +933,6 @@ var Grapher = function(div, opts) {
 			range.ymin = that.channels.map(function(c){return that.datasource.data[c].min();}).min();
 			range.ymax = that.channels.map(function(c){return that.datasource.data[c].max();}).max();
 		}
-		localStorage.range = JSON.stringify(range);
 		that.currentRange = range;
 		that.datasource.x = d3.scale.linear().domain([0, that.w]).range([range.xmin, range.xmax]);
 		that.datasource.y = d3.scale.linear().domain([0, that.h]).range([range.ymax, range.ymin]);
@@ -767,7 +996,7 @@ var Grapher = function(div, opts) {
 		    .y(function(d) { return  y(d); });
 		that.data = data;
 		
-		that.renderGrid(that.datasourceContainer,that.channels[0],x,y);
+		that.renderGrid(that.datasourceContainer,that.channels[0],that.x,that.y);
 		if ( that.showAcc) {
 			that.renderGrid(that.datasourceContainer, "Acc", that.x,that.y2);
 		}
@@ -822,6 +1051,7 @@ var Grapher = function(div, opts) {
 					return 0;
 				}
 			});
+		that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
 			
 		
 	};

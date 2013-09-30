@@ -9,7 +9,7 @@ var FolderDroplet = function(id, callback, opts) {
 	that.vsize.height = that.vsize.height || 320;
 	that.graphs = [];
 	that.videoFiles = [];
-	
+	that.msg = opts.msg || "<i class='icon-folder-open'></i>  Drop folder here to view";
 	//<link href="http://vjs.zencdn.net/c/video-js.css" rel="stylesheet">
 	//<script src="http://vjs.zencdn.net/c/video.js"></script>
 	$(document).append($("<script>").attr("src","http://vjs.zencdn.net/c/video.js"));
@@ -80,7 +80,7 @@ var FolderDroplet = function(id, callback, opts) {
 					var videoStart = new Date(date[0], date[1]-1, date[2], time[0], time[1], Math.floor(time[2]),(time[2]-Math.floor(time[2]))*1000.0 );
 					$("#" + this.id).attr("data-start-time", videoStart.valueOf());
 				}
-	
+				
 				console.log("Current Time: " + this.currentTime());
 				var delta = new TimeDelta(this.currentTime()*1000);
 				for (var n = 0; n < that.graphs.length; n++) {
@@ -147,7 +147,37 @@ var FolderDroplet = function(id, callback, opts) {
 			var player = this;
 			console.log("Video loaded!");
 			player.size(that.vsize.width,that.vsize.height);
-			
+			if($("#" + this.id).attr("data-start-time")){
+				var videoStart = new Date(parseInt($("#" + this.id).attr("data-start-time")));
+			}
+			else {
+
+				var startTime = $("#" + this.id).find("video").attr("filename");
+				//01-17-2013 09:03:45.mp4
+				var date = startTime.split(" ")[0].split("-").map(parseInt);
+				var time = startTime.split(" ")[1].split(".m")[0].split("_").map(parseFloat);
+				console.log(date + " " + time);
+				var videoStart = new Date(date[0], date[1]-1, date[2], time[0], time[1], Math.floor(time[2]),(time[2]-Math.floor(time[2]))*1000.0 );
+				$("#" + this.id).attr("data-start-time", videoStart.valueOf());
+			}
+			if (isNaN(videoStart)) {
+				//Open datetime picker
+				var tpid = this.id + "_timepicker";
+				$("#" + this.id).popover({
+					type:"auto",
+					title:"<strong>Please specify video start time</strong> <a class='close' href='#' onclick=\"$(\'#" + this.id + "\').popover(\'hide\')\" aria-hidden='true'>&times;</a>",
+					trigger:"manual",
+					html:true,
+					content:'<div class="input-group"><span class="input-group-addon"><i class="icon-time"></i></span><input id="' + tpid + '" type="text" class="form-control" placeholder="yyyy-mm-dd HH:MM:SS Z"></div>'
+				
+				});
+				$("#" + this.id).popover("show");
+				$("#" + tpid).on("change", function() {
+					console.log($(this).attr("value"));
+					$("#" + vidid).attr("data-start-time", moment($(this).attr("value").valueOf()));
+				
+				});
+			}
 			that.videoFiles.push(player);
 		});
 	
@@ -196,7 +226,7 @@ var FolderDroplet = function(id, callback, opts) {
 			  
 			  
 			  return false;
-		}, {"label":"<i class='icon-folder-open'></i>  Drop folder here to view", "allowFolders":true});
+		}, {"label":that.msg, "allowFolders":true});
 	
 
 

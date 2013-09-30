@@ -59,7 +59,16 @@ var qLogFile =  function () {
 		}
 	
 	};
+	this.hash = function() {
+		if (!that.didAlreadyLoad) {
+			return null;
+		}
+		else {
+			var hash = that.startTime.toString() + "_" + that.endTime.toString() + "_" + that.filename + "_"+ that.data.length*that.data[that.channels[0]][0];
+			return hash;
+		}
 	
+	};
 	this.load = function(url, callback) {
 		this.url = url;
 		this.filename = url.split("/").slice(-1);
@@ -99,6 +108,10 @@ var qLogFile =  function () {
 	
 	this.didLoad = function() {
 		//console.log(this);
+		if (localStorage[that.hash()] != undefined) {
+			var cache = JSON.parse(localStorage[that.hash()]);
+			that.rangeMarkers = cache.rangeMarkers;
+		}
 		if(this.callback != undefined){
 			this.callback.call(that);
 		}
