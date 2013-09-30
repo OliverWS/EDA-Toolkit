@@ -996,7 +996,7 @@ var Grapher = function(div, opts) {
 		    .y(function(d) { return  y(d); });
 		that.data = data;
 		
-		that.renderGrid(that.datasourceContainer,that.channels[0],that.x,that.y);
+		that.renderGrid(that.datasourceContainer,that.channels[0],x,y);
 		if ( that.showAcc) {
 			that.renderGrid(that.datasourceContainer, "Acc", that.x,that.y2);
 		}
