@@ -286,7 +286,7 @@ var Grapher = function(div, opts) {
 						that.datasourceContainer.append("path")
 							.attr("d", "")
 						    .attr("class", c.toLowerCase())
-						    .attr("id",c);
+						    .attr("id",c.toLowerCase());
 						
 					}
 					else {
@@ -294,7 +294,7 @@ var Grapher = function(div, opts) {
 							.attr("d", "")
 						    .attr("class", c.toLowerCase())
 						    .attr("clip-path", "url(#edaclip)")
-						    .attr("id",c);
+						    .attr("id",c.toLowerCase());
 					}
 					
 				}
@@ -304,7 +304,7 @@ var Grapher = function(div, opts) {
 			var c = that.channels[i];
 		
 			if (validChannels.find(c).length == 0) {
-				that.datasourceContainer.select("#"+c).remove();
+				that.datasourceContainer.select("#"+c.toLowerCase()).remove();
 			}
 		}
 		
@@ -1006,12 +1006,12 @@ var Grapher = function(div, opts) {
 			
 			console.log("Updating Data for " + that.channels[i]);
 			if ( (that.channels[i] == "X" || that.channels[i] == "Y" || that.channels[i] == "Z") && that.showAcc) {
-				that.datasourceContainer.select("#" + that.channels[i]).transition(500)
+				that.datasourceContainer.select("#" + that.channels[i].toLowerCase()).transition(500)
 					.attr("d", lineAcc(data[i]));
 				
 			}
 			else {
-				that.datasourceContainer.select("#" + that.channels[i]).transition(500)
+				that.datasourceContainer.select("#" + that.channels[i].toLowerCase()).transition(500)
 				.attr("d", line(data[i]));
 			}
 		}
