@@ -146,7 +146,7 @@ yText {
 	fill: none;
 }
 
-.eda, .detail {
+.eda,.EDA .detail {
 	stroke: #2CC4FF;
 	fill: #B6E1F2;
 }
@@ -289,26 +289,26 @@ rect.detail {
 	}
 	
 	
-	.eda {
+	path.eda,path.EDA {
 		stroke: #2CC4FF;
 		fill: #B6E1F2;
 	}
 	
-	path.tonic {
+	path.tonic,path.Tonic {
 		stroke: steelblue;
 		stroke-width: 2;
 		fill: rgba(70, 130, 180,0.75);
 	}
 	
-	path.x {
+	path.x,path.X {
 		stroke: red;
 		fill: none;
 	}
-	path.y {
+	path.y,path.Y {
 		stroke: blue;
 		fill: none;
 	}
-	path.z {
+	path.z,path.Z {
 		stroke: green;
 		fill: none;
 	}
