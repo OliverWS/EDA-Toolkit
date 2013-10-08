@@ -278,8 +278,13 @@ Date.prototype.getMinutesSinceMidnight = function() {
 
 };
 
-Date.prototype.shortString = function() {
-	return this.toLocaleTimeString();
+Date.prototype.shortString = function(showDay) {
+	if (showDay) {
+		return this.toLocaleDateString() + " " + this.toLocaleTimeString();
+	}
+	else {
+		return this.toLocaleTimeString();
+	}
 };
 
 

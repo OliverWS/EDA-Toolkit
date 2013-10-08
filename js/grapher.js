@@ -601,42 +601,51 @@ var Grapher = function(div, opts) {
 	}
 	
 	this.zoom = function(start, end, type) {
-		var bounds = that.datasourceContainer[0][0].getBoundingClientRect();
-		//console.log("Bounds: ");
-		//console.log(bounds);
-		if(!((start <= that.datasource.startTime) && (end >= that.datasource.endTime))){
-			$(that.container).append(
-				$("<button>")
-					.addClass("btn")
-					.addClass("clearButton")
-					.css("display","block")
-					.css("position","absolute")
-					.css("left", $(that.container).width() - 44 - 108/2)
-					.css("top",bounds.top + scrollY + that.p + 10)
-					.html("<i class='icon-zoom-out'></i> Zoom Out")
-					.on("click", function(e) {
-						$("button.clearButton").remove();
-						that.renderUpdate("full");
-						if(that.onzoom != undefined){
-							that.onzoom(that.datasource.startTime, that.datasource.endTime, "zoomout");
-						}
-						return false;
-					})
-			);
+		try {
+			
 		
-		}
-		if((start == undefined) && (end == undefined)) {
-			try {
-				var xmin = ([that.zoom_rect.p1[0],that.zoom_rect.p2[0]].min() /*- that.p*2*/); //Account for padding
-				var xmax = ([that.zoom_rect.p1[0],that.zoom_rect.p2[0]].max() /*- that.p*2*/); //Account for padding
-				var ymin = ([that.zoom_rect.p1[1],that.zoom_rect.p2[1]].min() - that.p);//Account for padding
-				var ymax = ([that.zoom_rect.p1[1],that.zoom_rect.p2[1]].max() - that.p); //Account for padding
+			var bounds = that.datasourceContainer[0][0].getBoundingClientRect();
+			//console.log("Bounds: ");
+			//console.log(bounds);
+			if(!((start <= that.datasource.startTime) && (end >= that.datasource.endTime))){
+				$(that.container).append(
+					$("<button>")
+						.addClass("btn")
+						.addClass("clearButton")
+						.css("display","block")
+						.css("position","absolute")
+						.css("left", $(that.container).width() - 44 - 108/2)
+						.css("top",bounds.top + scrollY + that.p + 10)
+						.html("<i class='icon-zoom-out'></i> Zoom Out")
+						.on("click", function(e) {
+							$(that.container).find("button.clearButton").remove();
+							that.renderUpdate("full");
+							if(that.onzoom != undefined){
+								that.onzoom(that.datasource.startTime, that.datasource.endTime, "zoomout");
+							}
+							return false;
+						})
+				);
+			
 			}
-			catch (error) {
+			else {
 				
 			}
-		}
-		if(that.isEDA) {
+			if ((start == that.datasource.startTime) && (end == that.datasource.endTime)){
+				$(that.container).find("button.clearButton").remove();
+				
+			}
+			if((start == undefined) && (end == undefined)) {
+				try {
+					var xmin = ([that.zoom_rect.p1[0],that.zoom_rect.p2[0]].min() /*- that.p*2*/); //Account for padding
+					var xmax = ([that.zoom_rect.p1[0],that.zoom_rect.p2[0]].max() /*- that.p*2*/); //Account for padding
+					var ymin = ([that.zoom_rect.p1[1],that.zoom_rect.p2[1]].min() - that.p);//Account for padding
+					var ymax = ([that.zoom_rect.p1[1],that.zoom_rect.p2[1]].max() - that.p); //Account for padding
+				}
+				catch (error) {
+					
+				}
+			}
 			//console.log("Start=" +start + " End=" + end);
 			//validate input
 			if (start < that.datasource.startTime) {
@@ -673,13 +682,15 @@ var Grapher = function(div, opts) {
 			console.log("Before onzoom with Start=" +that.datasource.timeForOffset(range.xmin) + " End=" + that.datasource.timeForOffset(range.xmax));
 			that.currentRange = range;
 			that.renderUpdate(range);
+			//console.log(that.onzoom);
+			if((that.onzoom != undefined) && ((start == undefined) && (end == undefined))){
+				that.onzoom(that.datasource.timeForOffset(range.xmin), that.datasource.timeForOffset(range.xmax));
+			}
 		}
-		else {
-			that.updateSVG(that.data.slice(xmin, xmax));
-		}
-		//console.log(that.onzoom);
-		if((that.onzoom != undefined) && ((start == undefined) && (end == undefined))){
-			that.onzoom(that.datasource.timeForOffset(range.xmin), that.datasource.timeForOffset(range.xmax));
+		catch (error) {
+			console.log(error);
+			that.onzoom(that.datasource.startTime, that.datasource.endTime, "zoomout");
+			
 		}
 	};
 	
@@ -1102,6 +1113,9 @@ var Grapher = function(div, opts) {
 		     .attr("x2", x)
 		     .attr("y1", y.range().min())
 		     .attr("y2", y.range().max());
+		var firstTick = x.ticks(5)[0];
+		var lastTick = x.ticks(5)[4];
+		var showDay = (that.datasource.timeForOffset(that.datasource.x(firstTick)).getDate() != that.datasource.timeForOffset(that.datasource.x(lastTick)).getDate());
 		
 		if (channel != "Acc") {
 		     
@@ -1111,8 +1125,9 @@ var Grapher = function(div, opts) {
 		     .attr("y", that.h+10)
 		     .attr("dy", ".35em")
 		     .attr("text-anchor", "middle")
-		 	 .text(function(d,i) {return that.datasource.timeForOffset(that.datasource.x(d)).shortString();});
+		 	 .text(function(d,i) {return that.datasource.timeForOffset(that.datasource.x(d)).shortString(showDay);});
 		 }
+		 
 		 //Now do the vertical lines and labels
 		 var nTicks = (h > 100) ? 10 : 3
 		 var yrule = edaContainer.selectAll("g.y."+channel)

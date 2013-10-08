@@ -207,7 +207,8 @@ var qLogFile =  function () {
 			return this.endTime;
 		}
 		else {
-			throw "Illegal Offset: " + offset +". Offset must be between " + 0 + " and " + this.data.length-1;
+			console.log( "Illegal Offset: " + offset +". Offset must be between " + 0 + " and " + this.data.length-1 );
+			return this.startTime.add(TimeDelta(offsetMilliseconds));
 		}
 		
 	};
