@@ -283,8 +283,13 @@ Date.prototype.getMinutesSinceMidnight = function() {
 
 };
 
-Date.prototype.shortString = function() {
-	return this.toLocaleTimeString();
+Date.prototype.shortString = function(showDay) {
+	if (showDay) {
+		return this.toLocaleDateString() + " " + this.toLocaleTimeString();
+	}
+	else {
+		return this.toLocaleTimeString();
+	}
 };
 
 
@@ -952,32 +957,30 @@ self.parse = function(text) {
 			break;
 		case "csv":
 			var headerPlusBody = text.split(LF);
-			text = null;
 			var headers = headerPlusBody.slice(0, 4);
 			console.log("Headers: " + headers.join("|"));
 			var body = text.replace(headers[0]+LF, "");
 			var parsedHeaders = self.parseDSVHeaders(headers,",");	
 			console.log("Parsed Headers: " + parsedHeaders["Column Names"].join(","));
-			console.log(body);
+			text = null;
 			self.parseTextData(body, parsedHeaders["Column Names"]);
 			break;
 		case "tsv":
 			var headerPlusBody = text.split(LF);
-			text = null;
 			var headers = headerPlusBody.slice(0, 4);
 			console.log("Headers: " + headers.join("|"));
 			var body = text.toString().replace(headers[0]+LF, "");
 			var parsedHeaders = self.parseDSVHeaders(headers,"\t");	
 			console.log("Parsed Headers: " + parsedHeaders["Column Names"].join("\t"));
-			console.log(body);
+			text = null;
 			self.parseTextData(body, parsedHeaders["Column Names"]);
 			break;
 		
 		default:
 			var headerPlusBody = text.toString().split(LF);
-			text = null;
 			var headers = headerPlusBody.slice(0, 4);
 			var body = text.toString().replace(headers[0]+LF, "");
+			text = null;
 			var parsedHeaders = self.parseDSVHeaders(headers,",");	
 			self.parseTextData(body, parsedHeaders["Column Names"]);
 			break;
