@@ -285,16 +285,16 @@ var Grapher = function(div, opts) {
 					if (c == "X" || c == "Y" || c == "Z") {
 						that.datasourceContainer.append("path")
 							.attr("d", "")
-						    .attr("class", c.toLowerCase())
-						    .attr("id",c.toLowerCase());
+						    .attr("class", c)
+						    .attr("id",c);
 						
 					}
 					else {
 						that.datasourceContainer.append("path")
 							.attr("d", "")
-						    .attr("class", c.toLowerCase())
+						    .attr("class", c)
 						    .attr("clip-path", "url(#edaclip)")
-						    .attr("id",c.toLowerCase());
+						    .attr("id",c);
 					}
 					
 				}
@@ -304,7 +304,7 @@ var Grapher = function(div, opts) {
 			var c = that.channels[i];
 		
 			if (validChannels.find(c).length == 0) {
-				that.datasourceContainer.select("#"+c.toLowerCase()).remove();
+				that.datasourceContainer.select("#"+c).remove();
 			}
 		}
 		
@@ -435,13 +435,13 @@ var Grapher = function(div, opts) {
 			if ((that.channels[i] == "X" || that.channels[i] == "Y" || that.channels[i] == "Z") && that.showAcc) {
 				edaContainer.append("path")
 					.attr("d", that.lineAcc(data[i]))
-				    .attr("class", that.channels[i].toLowerCase())
+				    .attr("class", that.channels[i])
 				    .attr("id",that.channels[i]);
 			}
 			else {
 				edaContainer.append("path")
 					.attr("d", line(data[i]))
-				    .attr("class", that.channels[i].toLowerCase())
+				    .attr("class", that.channels[i])
 				    .attr("clip-path", "url(#edaclip)")
 				    .attr("id",that.channels[i]);
 			}
@@ -1006,12 +1006,12 @@ var Grapher = function(div, opts) {
 			
 			console.log("Updating Data for " + that.channels[i]);
 			if ( (that.channels[i] == "X" || that.channels[i] == "Y" || that.channels[i] == "Z") && that.showAcc) {
-				that.datasourceContainer.select("#" + that.channels[i].toLowerCase()).transition(500)
+				that.datasourceContainer.select("#" + that.channels[i]).transition(500)
 					.attr("d", lineAcc(data[i]));
 				
 			}
 			else {
-				that.datasourceContainer.select("#" + that.channels[i].toLowerCase()).transition(500)
+				that.datasourceContainer.select("#" + that.channels[i]).transition(500)
 				.attr("d", line(data[i]));
 			}
 		}

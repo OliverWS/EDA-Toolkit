@@ -34,6 +34,26 @@ var Dropzone = function(el,callback,opts) {
 		var h = $(label).height();
 		$(label).css("margin-top",((that.height- h)/2)).css("text-align","center").css("vertical-align","middle");
 	}
+	if (Dropbox) {
+		var randomID = parseInt(Math.random()*10000).toString()
+		$(dropzone).find("h1").append('<br/><input type="dropbox-chooser" name="selected-file" id="db-chooser-' + randomID + '" data-link-type="direct" data-multiselect="true" data-extensions=".eda .mp4 .m4v" />')	
+		    document.getElementById("db-chooser-" + randomID).addEventListener("DbxChooserSuccess",
+		        function(e) {
+		        	console.log(e);
+		            var files = e.files;
+		            for (var i = 0; i < files.length; i++) {
+		            	var f = files[i];
+		            	that.callback(f,false,"link");			
+		            	
+		            }
+		            that.callback({},true);
+		            if(that.autoremove){
+		            	that.remove();
+		            }
+		            
+		        },false);
+				
+	}
 	dropzone.ondragover = function () { if(this.className.indexOf("hover") < 0){this.className += ' hover';} return false; };
 	dropzone.ondragend = function () { this.className.replace("hover", ""); return false; };
 	dropzone.ondrop = function(e) {	

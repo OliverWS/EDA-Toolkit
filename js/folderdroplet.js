@@ -21,38 +21,60 @@ var FolderDroplet = function(id, callback, opts) {
 		
 	
 	};
-	that.handleEDA = function(file) {
+	that.handleEDA = function(file, type) {
 		console.log("Loading file...");
-		var reader = new FileReader();
-		
-		reader.onload = function (event) {
-		  console.log(event.target);
-		  var edaDivId = "EDA" + ($("div.edaGraph").length + 1);
-		  $("#" + that.id).append($("<div>").attr("id",edaDivId).addClass("edaGraph").addClass("row-fluid"));
-		  var edaFile = new qLogFile();
-		  edaFile.progress = "progress-indicator-" + parseInt(Math.random()*10000, 10) ;	
-		  var loader = new Loader("#" + edaDivId, edaFile.progress);
-		  that.fileContents = event.target.result;
-		  edaFile.loadText(event.target.result, 
-		  function() {
-		  	var edaFile = this;
-		  	console.log("Preparing to graph");
-		  	var grapher = new Grapher( document.getElementById(edaDivId) );
-		  	$("#"+edaDivId).find(".loader").remove();
-		  	grapher.plot(edaFile);
-		  	
-		  	that.graphs.push(grapher);
-		  	that.callback(that.graphs);
-		  	
-		  	
-		  
-		  }
-		  , file.name);
-		  return false;
-		};
-		
-		reader.readAsBinaryString(file);
-		
+		if (type == "link") {
+			var edaDivId = "EDA" + ($("div.edaGraph").length + 1);
+			$("#" + that.id).append($("<div>").attr("id",edaDivId).addClass("edaGraph").addClass("row-fluid"));
+			var edaFile = new qLogFile();
+			edaFile.progress = "progress-indicator-" + parseInt(Math.random()*10000, 10) ;	
+			var loader = new Loader("#" + edaDivId, edaFile.progress);
+			edaFile.load(file.link, 
+			function() {
+				var edaFile = this;
+				console.log("Preparing to graph");
+				var grapher = new Grapher( document.getElementById(edaDivId) );
+				$("#"+edaDivId).find(".loader").remove();
+				grapher.plot(edaFile);
+				
+				that.graphs.push(grapher);
+				that.callback(that.graphs);
+				
+				
+			
+			}, file.name);
+		}
+		else {
+			var reader = new FileReader();
+			
+			reader.onload = function (event) {
+			  console.log(event.target);
+			  var edaDivId = "EDA" + ($("div.edaGraph").length + 1);
+			  $("#" + that.id).append($("<div>").attr("id",edaDivId).addClass("edaGraph").addClass("row-fluid"));
+			  var edaFile = new qLogFile();
+			  edaFile.progress = "progress-indicator-" + parseInt(Math.random()*10000, 10) ;	
+			  var loader = new Loader("#" + edaDivId, edaFile.progress);
+			  that.fileContents = event.target.result;
+			  edaFile.loadText(event.target.result, 
+			  function() {
+			  	var edaFile = this;
+			  	console.log("Preparing to graph");
+			  	var grapher = new Grapher( document.getElementById(edaDivId) );
+			  	$("#"+edaDivId).find(".loader").remove();
+			  	grapher.plot(edaFile);
+			  	
+			  	that.graphs.push(grapher);
+			  	that.callback(that.graphs);
+			  	
+			  	
+			  
+			  }
+			  , file.name);
+			  return false;
+			};
+			
+			reader.readAsBinaryString(file);
+		}
 	
 	};
 	
@@ -119,16 +141,23 @@ var FolderDroplet = function(id, callback, opts) {
 	};
 		
 	
-	that.handleVideo = function(file) {
+	that.handleVideo = function(file,type) {
 	
 		
 		console.log("Got video file: " + file.name);
-		var metadata = file;
-		var vid = window.webkitURL.createObjectURL(file);
-		
-		var name = metadata.name;
-		var type = metadata.type;
-		var vidid = "video" + parseInt(Math.random()*1000+"",10);
+		if(type == "link"){
+			var name = file.name;
+			var type = "video/" + name.split(".")[name.split(".").length-1];
+			var vid = file.link;
+		}
+		else {
+			var metadata = file;
+			var vid = window.webkitURL.createObjectURL(file);
+			
+			var name = metadata.name;
+			var type = metadata.type;
+		}
+			var vidid = "video" + parseInt(Math.random()*1000+"",10);
 		//<video id="video" controls="" preload="auto" name="media"><source src="data/1/clip-2013-01-17 09;03;57.m4v" ></video>					
 		$("#" +that.id).prepend(
 			$("<video>")
@@ -186,35 +215,37 @@ var FolderDroplet = function(id, callback, opts) {
 	};
 	
 	that.dropzone = new Dropzone(that.id,
-		function (file, isDone) {
+		function (file, isDone, type) {
+			  var type = type || "file_entry";
 			  if(isDone){
 			  	setTimeout(that.setupHandlers, 500	);
 			  	that.callback(that.graphs);
 			  	return;
 			  }
 			  console.log(file);
+			  
 			  var extension = file.name.split(".")[file.name.split(".").length-1].toLowerCase();
 			  switch (extension) {
 			  	case "eda":
-			  		that.handleEDA(file);
+			  		that.handleEDA(file, type);
 			  		break;
 			  	case "reda":
-			  		that.handleEDA(file);
+			  		that.handleEDA(file,type);
 			  		break;
 			  	case "csv":
-			  		that.handleEDA(file);
+			  		that.handleEDA(file,type);
 			  		break;
 			  	case "tsv":
-			  		that.handleEDA(file);
+			  		that.handleEDA(file,type);
 			  		break;
 			  	case "avi":
-			  		that.handleVideo(file);
+			  		that.handleVideo(file,type);
 			  		break;
 				case "mov":
-					that.handleVideo(file);
+					that.handleVideo(file,type);
 					break;
 			  	case "mp4":
-			  		that.handleVideo(file);
+			  		that.handleVideo(file,type);
 			  		break;
 				case "bookmark":
 					that.bookmark = file.name.split(".")[0];

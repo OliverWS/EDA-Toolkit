@@ -69,9 +69,14 @@ var qLogFile =  function () {
 		}
 	
 	};
-	this.load = function(url, callback) {
+	this.load = function(url, callback, filename) {
 		this.url = url;
-		this.filename = url.split("/").slice(-1);
+		if (filename) {
+			this.filename = filename;
+		}
+		else {
+			this.filename = url.split("/").slice(-1);
+		}
 		
 		this.callback = callback;
 		if(this.worker == undefined) {
