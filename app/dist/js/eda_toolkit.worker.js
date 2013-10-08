@@ -932,13 +932,14 @@ self.addEventListener('message', function(e) {
 }, false);
 
 self.parse = function(text) {
-	var type = self.detectFormat(text.toString());
+	text = text.toString();
+	var type = self.detectFormat(text);
 	switch (type) {
 		case "edafile":
-			var headerPlusBody = text.toString().split(separator);
+			var headerPlusBody = text.split(separator);
 			var headers = headerPlusBody[0].split(LF);
 			var parsedHeaders = self.parseHeaders(headers);	
-		
+			text = null;
 			if(parsedHeaders["File Version"] < 1.1) {
 				self.parseTextData(headerPlusBody[1], ["Z","Y","X","Battery","Temperature","EDA"]);
 			}
@@ -950,19 +951,19 @@ self.parse = function(text) {
 			}
 			break;
 		case "csv":
-			var headerPlusBody = text.toString().split(LF);
-			
+			var headerPlusBody = text.split(LF);
+			text = null;
 			var headers = headerPlusBody.slice(0, 4);
 			console.log("Headers: " + headers.join("|"));
-			var body = text.toString().replace(headers[0]+LF, "");
+			var body = text.replace(headers[0]+LF, "");
 			var parsedHeaders = self.parseDSVHeaders(headers,",");	
 			console.log("Parsed Headers: " + parsedHeaders["Column Names"].join(","));
 			console.log(body);
 			self.parseTextData(body, parsedHeaders["Column Names"]);
 			break;
 		case "tsv":
-			var headerPlusBody = text.toString().split(LF);
-			
+			var headerPlusBody = text.split(LF);
+			text = null;
 			var headers = headerPlusBody.slice(0, 4);
 			console.log("Headers: " + headers.join("|"));
 			var body = text.toString().replace(headers[0]+LF, "");
@@ -974,6 +975,7 @@ self.parse = function(text) {
 		
 		default:
 			var headerPlusBody = text.toString().split(LF);
+			text = null;
 			var headers = headerPlusBody.slice(0, 4);
 			var body = text.toString().replace(headers[0]+LF, "");
 			var parsedHeaders = self.parseDSVHeaders(headers,",");	
@@ -1240,6 +1242,7 @@ self.parseTextData = function(body, columnHeaders) {
 	}
 	data.markers = [];
 	var lines = body.split(LF);
+	body = null;
 	var length = lines.length;
 	for(var n=0; n < length; n++) {
 		if((n % 1000) == 0) { 
@@ -1256,7 +1259,7 @@ self.parseTextData = function(body, columnHeaders) {
 				var value = values[c];
 				if(value != undefined && value != "" && value.length>0 && value.charCodeAt(0) != 13) {
 					if (columnHeaders[c].toLowerCase() == "events") {
-						console.log("Value: " + value + " | value.length=" + value.length + " | value.charCode=" + value.charCodeAt(0));
+						//console.log("Value: " + value + " | value.length=" + value.length + " | value.charCode=" + value.charCodeAt(0));
 						data.markers.push({index:n,comment:value,type:"generated"});
 					}
 					else{
@@ -1283,6 +1286,7 @@ self.parseBinaryData = function(body, columnHeaders) {
 	}
 	body = body.replace(/^\r\n*/g, "");
 	var data_packets = body.split(EOL);
+	body = null;
 	data.markers = [];
 	var length = data_packets.length;
 	for(var n=0; n < length; n++){
@@ -1294,14 +1298,14 @@ self.parseBinaryData = function(body, columnHeaders) {
 	    	
 	    	var line = data_packets[n];
 	    	if (line.length != 12) {
-	    		console.log(line);
-	    		console.log("Line length: "+ line.length + " at index: " + n  + " of " + length);
+	    		//console.log(line);
+	    		//console.log("Line length: "+ line.length + " at index: " + n  + " of " + length);
 	    		
 	    	}
 	    	//console.log("Line: " + line + " | Length: " + line.length);
 	        // check for blank lines that could occur at EOF and log them
 	        if(line.length == 0) {
-	            console.log("> Encountered a blank line at #" + index + " of (headless) binData - this is most likely EOF");
+	            //console.log("> Encountered a blank line at #" + index + " of (headless) binData - this is most likely EOF");
 	            break;
 	        }
 	        
@@ -1356,7 +1360,5 @@ self.get = function(url, callback) {
 	{
 	  binaryString[i] = String.fromCharCode(uInt8Array[i]);
 	}
-	var data = binaryString.join('');
-	self.parse( data );
-	console.log(data);	
+	self.parse( binaryString.join('') );
 };
