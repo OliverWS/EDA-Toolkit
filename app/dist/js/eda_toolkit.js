@@ -927,7 +927,7 @@ var Dropzone = function(el,callback,opts) {
 	}
 	if (Dropbox) {
 		var randomID = parseInt(Math.random()*10000).toString()
-		$(dropzone).find("h1").append('<br/><input type="dropbox-chooser" name="selected-file" id="db-chooser-' + randomID + '" data-link-type="direct" data-multiselect="true" data-extensions=".eda .mp4 .m4v" />')	
+		$(dropzone).find("h1").append('<br/><input type="dropbox-chooser" name="selected-file" id="db-chooser-' + randomID + '" data-link-type="direct" data-multiselect="true" data-extensions=".eda .csv .tsv .avi .webm .mov .mp4 .m4v" />')	
 		    document.getElementById("db-chooser-" + randomID).addEventListener("DbxChooserSuccess",
 		        function(e) {
 		        	console.log(e);
