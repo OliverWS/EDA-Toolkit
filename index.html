@@ -1,76 +1,91 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <title>EDA Toolkit by OliverWS</title>
+    <title>EDA Toolkit</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+	<script src="//code.jquery.com/jquery.js"></script>
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+	<!-- Latest Glyphicons minified CSS -->
+	<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.no-icons.min.css" rel="stylesheet">
+	<!-- FontAwesome -->
+	<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
+	
+	<link rel="stylesheet" href="css/main.css" type="text/css	" />
+	<style>
+		.cbsl strong{
+			color: #CC0000;
+		}
+		.container {
+			min-height: 500px;
+		}
+		ul.features li{
+			padding-top: 10px;
+		}
+		ul.features li i {
+			color: #C9474A;
+			font-size: 30px;
+		}
+		.jumbotron {
+			background-image: url(img/eda-backdrop.svg);
+			background-repeat: no-repeat;
+			background-size: 100% 100%;
+			
+		}
+	</style>
   </head>
-
-  <body>
-    <div id="container">
-      <div class="inner">
-
-        <header>
-          <h1>EDA Toolkit</h1>
-          <h2>Browser-based solution for displaying and interacting with EDA and video data</h2>
-        </header>
-
-        <section id="downloads" class="clearfix">
-          <a href="https://github.com/OliverWS/EDA-Toolkit/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
-          <a href="https://github.com/OliverWS/EDA-Toolkit/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
-          <a href="https://github.com/OliverWS/EDA-Toolkit" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>
-
-        <hr>
-
-        <section id="main_content">
-          <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
-
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
-
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
-
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
-
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
-
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
-
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
-
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-        </section>
-
-        <footer>
-          EDA Toolkit is maintained by <a href="https://github.com/OliverWS">OliverWS</a><br>
-          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
-
-        
+  <body data-spy="scroll" data-target="#sidebar">
+  <a href="https://github.com/you"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+      <div class="jumbotron masthead">
+    	  <h1>EDA Toolkit</h1>
       </div>
-    </div>
+      <div class="container" id="main">
+        <div class="row">
+        	<div id="content" class="col-md-12" role="main">
+					<div class="page-header">
+				     	<h1 id="About">About</h1>
+				    </div>  
+				    <p class="lead"><strong>EDA Toolkit</strong> is a web-based application 
+				    for viewing physiological data streams 
+				    with (or without) synchronized video. 
+				    The application is entirely browser based, 
+				    uses HTML5 and SVG to do all rendering, 
+				    requires no plugins, and supports drag and drop 
+				    of both EDA files and video as well as folders
+				    containing EDA and video intended to be 
+				    viewed together.</p>	
+				    <div class="bs-callout bs-callout-info"><p class="lead">Heard enough? Go ahead and <a href="app/" class="btn btn-success btn-lg">Try it now!</a></p></div>
+					<div class="page-header">
+					 	<h1 id="features">Features</h1>
+					</div>  
+				    <ul class="icons-ul features">
+				    	<li class="simple"><i class="icon-li icon-html5"></i><strong>Simple</strong> &mdash; Drag and drop files or a folder to load all your data. Time synchronization is handled automatically, the system reads all .eda files natively and is compatible with any timeseries data which follows a simple CSV timestamping convention. </li>
+				    	<li class="secure"><i class="icon-li icon-lock"></i><strong>Secure</strong> &mdash; All data stays locally on your computer so nothing is uploaded to a remote server, ensuring both data security and performance.</li>
+				    	<li class="fast"><i class="icon-li icon-bolt"></i><strong>Fast</strong> &mdash; Uses WebWorkers to dynamically filter and downsample data 
+				    	ensuring consistent performance even with millions of data points.</li>
+				    	<li class="flexible"><i class="icon-li icon-wrench"></i><strong>Flexible</strong> &mdash; Easily configure which data channels you want to view, re-size, re-order data series and add/edit annotations on the fly.</li>
+				    	<li class="open"><i class="icon-li icon-code-fork"></i><strong>Open</strong> &mdash; All the source code is available on Github.</li>
+				    </ul>			
+        	</div>
+      	</div> 
+      </div><!-- /container -->
+  	<footer>
+  		<div class="container">
+  	  		<p class="pull-right">&copy; Oliver Wilder-Smith 2013</p>
+  		</div>
+  	</footer>
+  	
+    
+  <script>
+	    $(window).on('load', function () {
+	      $("#main").scrollspy('refresh')
+	      
+	    })
+	
+	
+    
+  
+  </script>
   </body>
 </html>
