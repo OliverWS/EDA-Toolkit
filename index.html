@@ -11,6 +11,7 @@
 	<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.no-icons.min.css" rel="stylesheet">
 	<!-- FontAwesome -->
 	<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
+	<script src="app/js/eda_toolkit.min.js" async onload="updateVersion()"></script>
 	
 	<link rel="stylesheet" href="css/main.css" type="text/css	" />
 	<style>
@@ -30,11 +31,19 @@
 			background-size: cover;
 			
 		}
+		footer {
+			margin-top: 50px;
+		}
+		footer .container {
+			border-top: 1px solid #eee;
+						padding-top: 20px;
+			
+		}
 		
 	</style>
   </head>
   <body data-spy="scroll" data-target="#sidebar">
-  <a href="https://github.com/you"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+  <a href="https://github.com/oliverws/EDA-Toolkit"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
       <div class="jumbotron masthead">
     	  <h1>EDA Toolkit</h1>
       </div>
@@ -70,7 +79,7 @@
       </div><!-- /container -->
   	<footer>
   		<div class="container">
-  	  		<p class="pull-right">&copy; Oliver Wilder-Smith 2013</p>
+  	  		<p class="copyright"><span class="data-version pull-left"></span> <span class="pull-right"><strong>&copy; Oliver Wilder-Smith <span class="data-year"></span></strong></span></p>
   		</div>
   	</footer>
   	
@@ -78,9 +87,11 @@
   <script>
 	    $(window).on('load', function () {
 	      $("#main").scrollspy('refresh')
-	      
+	      $(".copyright").find(".data-year").text((new Date()).getFullYear().toString());
 	    })
-	
+		var updateVersion = function() {
+			$(".copyright").find(".data-version").text("Version " + version);
+		};
 	
     
   
