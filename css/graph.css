@@ -164,6 +164,30 @@ yText {
 	fill: none;
 }
 
+/* Adding colors for social lens headers 
+ * [u'timestamp', u'yaw', u'heading', u'roll', u'pitch']
+ */
+.heading {
+	stroke: #CC0000;
+	fill: none;
+}
+
+.yaw {
+	stroke: #00CC00;
+	fill: none;
+}
+
+.roll {
+	stroke: #0000CC;
+	fill: none;
+}
+
+.pitch {
+	stroke: #AE81F2;
+	fill: none;
+}
+
+
 
 g.detail {
 	opacity: 0.5;
