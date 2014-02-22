@@ -963,7 +963,7 @@ var Dropzone = function(el,callback,opts) {
 			}
 			else {
 				for (var i = e.dataTransfer.files.length - 1; i >= 0; i--) {
-					var file = e.dataTransfer.files[0];
+					var file = e.dataTransfer.files[i];
 					that.callback(file);
 				};
 				that.callback({},true);			
@@ -3062,4 +3062,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:117}
+var version = {build:118}
