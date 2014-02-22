@@ -71,9 +71,11 @@ var Dropzone = function(el,callback,opts) {
 				}
 			}
 			else {
-				var file = e.dataTransfer.files[0];
-			
-				that.callback(file);
+				for (var i = e.dataTransfer.files.length - 1; i >= 0; i--) {
+					var file = e.dataTransfer.files[0];
+					that.callback(file);
+				};
+				that.callback({},true);			
 				if(that.autoremove){
 					that.remove();
 				}
