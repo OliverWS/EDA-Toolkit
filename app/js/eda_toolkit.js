@@ -1773,9 +1773,8 @@ var FolderDroplet = function(id, callback, opts) {
 	
 	
 	};
-	
-	that.dropzone = new Dropzone(that.id,
-		function (file, isDone, type) {
+
+	var loadFiles = function (file, isDone, type) {
 			  var type = type || "file_entry";
 			  if(isDone){
 			  	setTimeout(that.setupHandlers, 500	);
@@ -1817,8 +1816,14 @@ var FolderDroplet = function(id, callback, opts) {
 			  
 			  
 			  return false;
-		}, {"label":that.msg, "allowFolders":true});
+		};
 	
+	that.dropzone = new Dropzone(that.id, loadFiles, {"label":that.msg, "allowFolders":true});
+	
+	if (urlParams("file") != null) {
+		loadFiles(urlParams("file"), false, "link");
+		loadFiles({},true,"");
+	};
 
 
 }
@@ -3062,4 +3067,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:118}
+var version = {build:120}
