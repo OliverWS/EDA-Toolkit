@@ -1824,7 +1824,7 @@ var FolderDroplet = function(id, callback, opts) {
 		var url = urlParams("file");
 		var file = {};
 		file.link = url;
-		file.name = url.split("/").slice(-1);
+		file.name = url.split("/").slice(-1)[0];
 		loadFiles(file, false, "link");
 		loadFiles({},true,"");
 	};
@@ -3071,4 +3071,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:121}
+var version = {build:122}
