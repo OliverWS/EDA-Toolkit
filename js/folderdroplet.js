@@ -267,6 +267,7 @@ var FolderDroplet = function(id, callback, opts) {
 		file.name = url.split("/").slice(-1)[0];
 		loadFiles(file, false, "link");
 		loadFiles({},true,"");
+		that.dropzone.remove();
 	};
 
 
