@@ -222,12 +222,8 @@ var FolderDroplet = function(id, callback, opts) {
 			  	return;
 			  }
 			  console.log(file);
-			  if (type=="link") {
-			  	var extension = file.split(".")[file.split(".").length-1].toLowerCase();
-			  }
-			  else {
-			  	var extension = file.name.split(".")[file.name.split(".").length-1].toLowerCase();
-			  }
+			  var extension = file.name.split(".")[file.name.split(".").length-1].toLowerCase();
+			  
 			  switch (extension) {
 			  	case "eda":
 			  		that.handleEDA(file, type);
@@ -265,7 +261,11 @@ var FolderDroplet = function(id, callback, opts) {
 	that.dropzone = new Dropzone(that.id, loadFiles, {"label":that.msg, "allowFolders":true});
 	
 	if (urlParams("file") != null) {
-		loadFiles(urlParams("file"), false, "link");
+		var url = urlParams("file");
+		var file = {};
+		file.link = url;
+		file.name = url.split("/").slice(-1);
+		loadFiles(file, false, "link");
 		loadFiles({},true,"");
 	};
 
