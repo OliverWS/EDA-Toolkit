@@ -1782,8 +1782,12 @@ var FolderDroplet = function(id, callback, opts) {
 			  	return;
 			  }
 			  console.log(file);
-			  
-			  var extension = file.name.split(".")[file.name.split(".").length-1].toLowerCase();
+			  if (type=="link") {
+			  	var extension = file.split(".")[file.split(".").length-1].toLowerCase();
+			  }
+			  else {
+			  	var extension = file.name.split(".")[file.name.split(".").length-1].toLowerCase();
+			  }
 			  switch (extension) {
 			  	case "eda":
 			  		that.handleEDA(file, type);
