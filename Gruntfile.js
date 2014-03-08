@@ -64,6 +64,7 @@ module.exports = function(grunt) {
             files: [
               {expand: true, src: ['css/*'], dest: 'dist/'}, // includes files in path
               {expand: true, src: ['index.html'], dest: 'dist/'}, // includes files in path
+              {expand: true, src: ['embed.html'], dest: 'dist/'} // includes files in path
             ]
           }
         }

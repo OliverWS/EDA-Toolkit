@@ -50,8 +50,8 @@ var Grapher = function(div, opts) {
 		this.graph = $("<canvas>");
 		$(this.container).append(this.graph);
 	}
-	this.width = $(div).width();
-	this.height = $(div).height();
+	this.width = this.opts.width || $(div).width();
+	this.height = this.opts.height || $(div).height();
 	this.plot = function(data, callback) {
 		if(callback) that.readyCallback = callback;
 		
@@ -149,11 +149,11 @@ var Grapher = function(div, opts) {
 
 		var root = $(that.container);
 		
-		$(that.container).prepend($("<div>").addClass("btn-toolbar").addClass("pull-right").css("margin-bottom",-50).append(
+		$(that.container).prepend($("<div>").addClass("btn-toolbar").addClass("pull-right").css("margin-bottom",-50).css("margin-right",50).append(
 			$("<div>").addClass("btn-group").append(
 				$("<button>").attr("class","btn btn-info dropdown-toggle").attr("data-toggle","dropdown").attr("href","#").html("Channels\n<span class='caret'></span>")
 			).append(
-				$("<ul>").addClass("dropdown-menu channel-select-dropdown").attr("id","channel-select").attr("role","menu")
+				$("<ul>").addClass("dropdown-menu dropdown-menu-right channel-select-dropdown").attr("id","channel-select").attr("role","menu")
 			)
 		));
 		
@@ -248,11 +248,11 @@ var Grapher = function(div, opts) {
 	
 	this.resize = function(height,width) {
 		var el = this.container;
+		that.p = ($(el).width()/10) < 50 ? ($(el).width()/10) : 50;
 		if (width != undefined) {
 			$(el).css("width", width);
 			$(el).find("svg").attr("width",width);
-			that.p = ($(el).width()/5) < 25 ? ($(el).width()/5) : 25;
-			that.w = $(el).width() - 3*p;
+			that.w = width - 3*that.p;
 			that.datasourceContainer.attr("width",that.w);
 		}
 		
@@ -360,7 +360,7 @@ var Grapher = function(div, opts) {
 		el = that.container;
 		p = ($(el).width()/10) < 50 ? ($(el).width()/10) : 50;
 		that.p = p;
-		w = $(el).width() - 2*p;
+		w = $(el).width() - 3*p;
 		if (that.showACC) {
 			h = 2*($(el).height() - 3*p)/3.0;
 		}
@@ -409,8 +409,8 @@ var Grapher = function(div, opts) {
 		that.svg = d3.select(el)
 		  .append("svg")
 		  	.attr("class","graph")
-		    .attr("width", w + 2*p)
-		    .attr("height", h + 3*p);
+		    .attr("width", that.width)
+		    .attr("height", that.height);
 		
 		edaContainer = that.svg.append("g").attr("transform", "translate(" + 2*p + "," + p + ")");
 		edaContainer.append("defs").append("svg:clipPath")
@@ -614,7 +614,7 @@ var Grapher = function(div, opts) {
 						.addClass("clearButton")
 						.css("display","block")
 						.css("position","absolute")
-						.css("left", $(that.container).width() - 44 - 108/2)
+						.css("right", 107/2)
 						.css("top",bounds.top + scrollY + that.p + 10)
 						.html("<i class='icon-zoom-out'></i> Zoom Out")
 						.on("click", function(e) {
@@ -713,7 +713,7 @@ var Grapher = function(div, opts) {
 			$(that.graph).find("rect.zoomrect").popover({
 				html: true,
 				container: 'body',
-				placement: 'top',
+				placement: window.isEmbed ? 'auto right' : 'top',
 				trigger: 'manual',
 				content: popoverContent
 			});
@@ -776,7 +776,7 @@ var Grapher = function(div, opts) {
 			html: true,
 			title: '<input type="text" class="form-control" placeholder="Comment" id="COMMENT_ID">'.replace("COMMENT_ID",COMMENT_ID),
 			container: 'body',
-			placement: 'top',
+			placement: window.isEmbed ? 'auto right' : 'top',
 			trigger: 'manual',
 			content: popoverContent
 		});
@@ -1001,7 +1001,13 @@ var Grapher = function(div, opts) {
 		}
 		that.x = x;
 		that.y = y;
-		that.datasourceContainer.select("#edaclip rect").attr("height",y.range().max()-y.range().min()).attr("y",y.range().min());
+		that.datasourceContainer.select("#edaclip rect")
+			.attr("height",y.range().max()-y.range().min())
+			.attr("y",y.range().min())
+			.attr("width",x.range().max()-x.range().min())
+			.attr("x",x.range().min());
+
+		
 		var line = d3.svg.line()
 		    .x(function(d,i) { return x(i); })
 		    .y(function(d) { return  y(d); });
@@ -1078,32 +1084,19 @@ var Grapher = function(div, opts) {
 		console.log(x.domain());
 		console.log(x.range());
 		that.datasourceContainer.selectAll("#background-rect-"+channel).remove();
-//		if (that.datasourceContainer.select("rect#background-rect-"+channel)[0].length == 0) {
-			var background = edaContainer.append("svg:rect")
-								.attr("class", "background " +channel)
-								.attr("id","background-rect-"+channel)
-								.attr("x",0)
-								.attr("y",y.range().min())
-								.attr("width",w)
-								.attr("height",h);
-//		}
-//		else {
-//			var background = that.datasourceContainer.select("#background-rect-"+channel).attr("y",y.range().min()).attr("height",h);
-//			
-//			
-//		}
-		 //dynamicTimeTicks(edaContainer,data,data,10);
-		 //console.log("Y Ticks:");
-		 //console.log(y.ticks(10));
-		 //console.log("X Ticks:");
-		 //console.log(x.ticks(5));
-		 
+		var background = edaContainer.append("svg:rect")
+							.attr("class", "background " +channel)
+							.attr("id","background-rect-"+channel)
+							.attr("x",0)
+							.attr("y",y.range().min())
+							.attr("width",w)
+							.attr("height",h);
 		 //Clear all
 		 edaContainer.selectAll("g."+channel).remove();
-		 
+		 var ticks = x.ticks(w/150);
 		 //Now, lets do the horizontal ticks
 		 var xrule = edaContainer.selectAll("g.x."+channel)
-		     .data(x.ticks(5))
+		     .data(ticks)
 		     .enter().append("svg:g")
 		     .attr("class", "x "+channel);
 		 xrule.append("svg:line")
@@ -1113,23 +1106,20 @@ var Grapher = function(div, opts) {
 		     .attr("x2", x)
 		     .attr("y1", y.range().min())
 		     .attr("y2", y.range().max());
-		var firstTick = x.ticks(5)[0];
-		var lastTick = x.ticks(5)[4];
-		var showDay = (that.datasource.timeForOffset(that.datasource.x(firstTick)).getDate() != that.datasource.timeForOffset(that.datasource.x(lastTick)).getDate());
+		var showDay = (that.datasource.timeForOffset(that.datasource.x(ticks[0])).getDate() != that.datasource.timeForOffset(that.datasource.x(ticks[ticks.length-1])).getDate());
 		
 		if (channel != "Acc") {
-		     
-		 xrule.append("svg:text")
-		     .attr("class", "xText "+channel)
-		     .attr("x", x)
-		     .attr("y", that.h+10)
-		     .attr("dy", ".35em")
-		     .attr("text-anchor", "middle")
-		 	 .text(function(d,i) {return that.datasource.timeForOffset(that.datasource.x(d)).shortString(showDay);});
+			 xrule.append("svg:text")
+			     .attr("class", "xText "+channel)
+			     .attr("x", x)
+			     .attr("y", that.h+10)
+			     .attr("dy", ".35em")
+			     .style("text-anchor", "middle")
+			 	 .text(function(d,i) {return that.datasource.timeForOffset(that.datasource.x(d)).shortString(showDay);});
 		 }
 		 
 		 //Now do the vertical lines and labels
-		 var nTicks = (h > 100) ? 10 : 3
+		 var nTicks = h/30;
 		 var yrule = edaContainer.selectAll("g.y."+channel)
 		     .data(y.ticks(nTicks))
 		     .enter().append("svg:g")
