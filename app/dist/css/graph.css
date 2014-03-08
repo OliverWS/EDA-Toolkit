@@ -167,33 +167,26 @@ yText {
 /* Adding colors for social lens headers 
  * [u'timestamp', u'yaw', u'heading', u'roll', u'pitch']
  */
-path.heading {
+.heading {
 	stroke: #CC0000;
 	fill: none;
 }
 
-path.yaw {
+.yaw {
 	stroke: #00CC00;
 	fill: none;
 }
 
-path.roll {
+.roll {
 	stroke: #0000CC;
 	fill: none;
 }
 
-path.pitch {
+.pitch {
 	stroke: #AE81F2;
 	fill: none;
 }
-path.UserSpeech {
-	stroke: #6CC4ED;
-	fill: #6CC4ED;
-}
-path.OtherSpeech {
-	stroke: #F15D46;
-	fill: #F15D46;
-}
+
 
 
 g.detail {

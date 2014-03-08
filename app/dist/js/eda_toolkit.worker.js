@@ -890,7 +890,7 @@ signals.peaks = function(data, width) {
 
 
 var separator = "---------------------------------------------------------\r\n";
-var LF = "\r\n";
+var LF = "\n";
 var console = {};
 console.log = function(msg) {
 	self.postMessage({cmd:"console","msg":msg});
@@ -938,9 +938,6 @@ self.addEventListener('message', function(e) {
 
 self.parse = function(text) {
 	text = text.toString();
-	if(!text.contains(LF)){
-		LF = "\n";
-	}
 	var type = self.detectFormat(text);
 	switch (type) {
 		case "edafile":
