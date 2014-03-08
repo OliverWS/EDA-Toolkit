@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html lang="en">
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!-- Required Libraries -->
+		<script src="http://d3js.org/d3.v3.min.js"></script>	
+		<script src="http://code.jquery.com/jquery-1.8.0.min.js" type="text/javascript"></script>
+		<script src="http://codeorigin.jquery.com/ui/1.10.3/jquery-ui.min.js" type="text/javascript"></script>
+		<script src="http://fgnass.github.com/spin.js/dist/spin.min.js" type="text/javascript"></script>
+		<script src="http://momentjs.com/downloads/moment.min.js" type="text/javascript"></script>
+		
+		<!-- Optional Libraries for Dropbox Support -->
+		<script type="text/javascript" src="https://www.dropbox.com/static/api/1/dropins.js" id="dropboxjs" data-app-key="jdoj9iq6nz2cjy1"></script>
+		
+		<!-- Video JS -->
+		<link href="http://vjs.zencdn.net/c/video-js.css" rel="stylesheet">
+		<script src="http://vjs.zencdn.net/c/video.js"></script>
+		
+		<!--Bootstrap -->
+		<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.no-icons.min.css" rel="stylesheet">
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
+		<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+		<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">		
+		<link rel="stylesheet" href="css/graph.css" type="text/css" />
+		
+		<!-- EDA Toolkit -->
+		<script src="js/eda_toolkit.js" type="text/javascript"></script>
+		
+	</head>
+	<body>
+	
+		<div class="container-fluid">
+			<div class="header">
+				<h1>EDA Toolkit<small id="version"></small><span class="pull-right"><small></small><span id="foldername"></span></span></h1>
+			</div>
+			<hr />
+			
+			<div class="row-fluid">
+				<div class="col-12 view-container">	
+						<div class="btn-group-vertical pull-right hide toolbar-buttons toolbar" data-toggle="buttons">
+						  <button id="refresh" class="btn btn-primary" title="Reload"><i class="icon-refresh"></i></button>
+						  <button id="export" class="btn btn-primary" title="Export"><i class="icon-list"></i></button>
+						  <button class="btn btn-primary" id="add" title="Add Graph" data-toggle="reset">
+						  	<i class="icon-plus"></i><span class="hide">Add Graph</span>
+						  </button>
+						  <label class="btn btn-primary" id="remove" title="Toggle Edit Mode">
+						  	 <input type="checkbox" checked><i class="icon-trash"></i><span class="hide">Remove Graph(s)</span>
+						  </label>
+						  
+						  <label class="btn btn-primary active" id="sync" title="Toggle Sync">
+						    <input type="checkbox" checked><i class="icon-lock"></i><span class="hide"> Sync Graphs</span>
+						  </label>
+						  <label class="btn btn-primary" id="showACC"  title="Show/Hide Accelerometer Data">
+						    <input type="checkbox"><i class="icon-eye-open"></i> <span class="hide">Show ACC</span>
+						  </label>
+						  <label class="btn btn-primary active" id="showVideo"  title="Show/Hide Video">
+						    <input type="checkbox" checked><i class="icon-film"></i> <span class="hide"></span>
+						  </label>
+						  
+						  <!-- Single button -->
+						    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+						   <i class="icon-fullscreen"></i> <span class="hide">  Graph Size</span> <span class="caret"></span>
+						    </button>
+						    <ul id="graphSize" class="dropdown-menu" role="menu">
+						      <li><a class="selected-channel" href="#" size="300">Small</a></li>
+						      <li><a href="#" size="450">Medium</a></li>
+						      <li><a href="#" size="600">Large</a></li>
+						    </ul>
+						</div>					
+					
+					<div id="viewer" class="" >
+					
+					</div>
+				</div>
+			
+			</div>
+			<div class="modal fade" id="modal_template">
+			  <div class="modal-dialog">
+			    <div class="modal-content">
+			      <div class="modal-header">
+			        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			        <h4 class="modal-title">Selected Regions</h4>
+			      </div>
+			      <div class="modal-body">
+			        
+			      </div>
+			      <div class="modal-footer">
+      			        <button type="button" class="btn btn-primary" id="download_regions">Download</button>
+      			        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			      </div>
+			    </div><!-- /.modal-content -->
+			  </div><!-- /.modal-dialog -->
+			</div><!-- /.modal -->
+			
+			<footer>
+				<div class="pull-right">
+					<p>Created by <a href="http://ollie.ws">Oliver Wilder-Smith</a></p>
+				</div>
+			
+			</footer>
+			
+		</div>
+	</body>
+	<script type="text/javascript">
+		var edaFile, graphers, spreadsheet, drop, drop2, csv;		
+		
+		
+		$(document).on("ready", function() {
+			if (version) {
+				$("#version").html("v." + version.build);
+			}
+			$("#refresh").on("click",function() {
+				location.reload();
+			});
+			$("#showACC").on("click", function() {
+				setTimeout(function() {
+					var show = $("#showACC").hasClass("active");
+					if (show) {
+						$("#showACC").find("i").attr("class", "icon-eye-close");
+						$("#showACC span").html($("#showACC span").html().replace("Show","Hide"));
+					}
+					else {
+						$("#showACC").find("i").attr("class", "icon-eye-open");
+						$("#showACC span").html($("#showACC span").html().replace("Hide","Show"));
+					}
+				}, 50);
+			
+			});
+			$("#showVideo").on("click", function() {
+				setTimeout(function() {
+					var show = $("#showVideo").hasClass("active");
+					if (show) {
+						$(".video-js").show('slow');
+					}
+					else {
+						$(".video-js").hide('slow');
+					}
+				}, 50);
+			
+			});
+			
+			$("#sync input").on("change", function() {
+					var show =  ($("#sync input")[0].checked == true);
+					if (show) {
+						$("#sync").find("i").attr("class", "icon-lock");
+					}
+					else {
+						$("#sync").find("i").attr("class", "icon-unlock");
+					}
+			
+			});
+			
+			$("#remove input").on("change", function() {
+				var isActive =  ($("#remove input")[0].checked == true);
+				if (isActive) {
+					$(".handle i").attr("class","icon-trash delete-mode");
+					$(".handle").on("click", function() {
+						$(this).parent().animate({"margin-left":-1*$(document).width()},400, function() {
+							$(this).animate({"height":0},200,function() {
+								$(this).remove();
+							});
+						
+						});
+					});
+				}
+				else {
+					$(".handle i").attr("class","icon-reorder");
+					$(".handle").off("click");
+					$(".channel-select-dropdown").sortable({items: "li:has(.selected-channel)",cancel:".ignore"});
+					  $( "#viewer" ).sortable({
+					    placeholder: "placeholder",
+					    handle: ".handle",
+					    tolerance: "pointer"
+					  });
+					
+				}
+			
+			});
+			
+			
+		
+			$("#showACC input").on("change", function() {
+				console.log("Value of showACC=" + $("#showACC input")[0].checked);
+				var show =  ($("#showACC input")[0].checked == true);
+				
+				for (var n = 0; n < graphers.length; n++) {
+					var accChannels = ["X","Y","Z"];
+					if (show) {
+						var currentChannels = graphers[n].channels.clone();
+						for (var i = 0; i < accChannels.length; i++) {
+							if (graphers[n].channels.find(accChannels[i]).length == 0) {
+								currentChannels.push(accChannels[i]);
+							}
+						}
+						graphers[n].setChannels(currentChannels);
+						
+					}
+					else {
+						var targetChannels = [];
+						for (var i = 0; i < graphers[n].channels.length; i++) {
+							var c = graphers[n].channels[i];
+							if ((c != "X") && (c != "Y") && (c != "Z")) {
+								targetChannels.push(c);
+							}
+						}
+						graphers[n].setChannels(targetChannels);
+					}
+					
+				}
+			});
+			
+			$("#graphSize").find("li a").on("click", function(evt) {
+				$("#graphSize").find("li a").removeClass("selected-channel");
+				$(this).addClass("selected-channel");
+				$(".handle").css("height",parseInt($(this).attr("size")));
+				for (var i = 0; i < graphers.length; i++) {
+					graphers[i].resize(parseInt($(this).attr("size")));
+				}
+			});
+			
+			$(".edaGraph").on("sortmove", function(e) {
+				$(".placeholder").css("height", $(this).height());
+			
+			});
+			$("#add").on("click", function() {
+				if ($(".dropzone").length == 0) {
+					var id = "EDA"+($(".edaGraph").length+1);
+					$("#viewer").prepend($("<div>").attr("id",id).attr("class","edaGraph row-fluid"));
+					setupHandlers(id);
+				}
+				setTimeout(function() {$("#add").removeClass("active");}, 50);
+				
+				
+			});
+			$("#export").on("click", function() {
+				console.log("Export clicked");
+				var ranges = [];
+				for (var i = 0; i < graphers.length; i++) {
+					var g = graphers[i];
+					console.log(g.datasource.rangeMarkers);
+					if (g.datasource.rangeMarkers != undefined) {
+						for (var n = 0; n < g.datasource.rangeMarkers.length; n++) {
+							var marker = g.datasource.rangeMarkers[n];
+							ranges.push(marker);
+						}
+					}
+						
+				}
+				console.log(ranges);
+				$("#modal_template").find(".modal-body").empty();
+				$("#modal_template").find(".modal-body").append($("<table>").attr("class","table table-striped"));
+				var table = $("#modal_template").find(".modal-body").find("table");
+				$(table).append($("<thead>").append($("<tr>").html("<th>Start Time</th><th>End Time</th><th>Comment</th>")));
+				var csv = "Start Time,End Time,Comment\n";
+				for (var i = 0; i < ranges.length; i++) {
+					var table = $("#modal_template").find(".modal-body").find("table");
+					var m = ranges[i];
+					$(table).append($("<tr>").html("<td>" + m.startTime.toString() + "</td>" + "<td>" + m.endTime.toString() + "</td>" + "<td>" + m.comment + "</td>"));
+					csv += ( m.startTime.toString() + "," + "" + m.endTime.toString() + "," + "" + m.comment + "\n")
+				}
+				$("#modal_template").modal("show");
+				$("#download_regions").on("click", function() {
+					var pom = document.createElement('a');
+					pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
+					pom.setAttribute('download', "SelectedRegions.csv");
+					pom.click();
+					
+				});
+			});
+			
+			
+			setupHandlers = function(div) {
+				drop = new FolderDroplet(div, function(graphs) {
+					console.log(graphers);
+					graphers = graphs;
+					$("div.edaGraph").each(function(i,el) {
+						$(el).find(".handle").remove();
+						$(el).prepend('<div class="handle"><i class="icon-reorder"></i></div>');						
+					});
+					$(".channel-select-dropdown").sortable({items: "li:has(.selected-channel)",cancel:".ignore"});
+					  $( "#viewer" ).sortable({
+					    placeholder: "placeholder",
+					    handle: ".handle",
+					    tolerance: "pointer"
+					  });
+					$( ".video-js" ).resizable({
+					  aspectRatio: 16 / 9,
+					  animate: true
+					  
+					});
+					
+					for (var i = 0; i < graphers.length; i++) {
+						var g = graphers[i];
+						g.onzoom = function(s,e,t) {
+							if($("#sync").hasClass("active")){
+								for (var n = 0; n < graphers.length; n++) {
+									if(n != i){
+										graphers[n].zoom(s,e,t);
+									}
+								}
+							}
+			
+						};
+						
+						setTimeout(function() {
+							$(".toolbar-buttons").removeClass("hide");
+							if (g.datasource.channels.find("Tonic").length > 0) {
+								g.setChannels(["EDA","Tonic","Phasic"]);
+								g.channelSelectHandler();
+							}
+							
+						}, 500);
+					}
+					
+					
+				});
+			
+			};
+			setupHandlers("viewer");
+			$("label").tooltip({"placement":"left",delay: { show: 300, hide: 100 },container:"body"});
+			
+		});
+	
+		
+	</script>
+</html>
