@@ -708,7 +708,7 @@ var Grapher = function(div, opts) {
 			var ZOOM_ID = "ZOOM_ID_" + parseInt(Math.random()*1000,10).toString();
 			var ADD_RANGE_ID = "ADD_RANGE_ID_" + parseInt(Math.random()*1000,10).toString();
 			var COMMENT_ID = "COMMENT_ID_" + parseInt(Math.random()*1000,10).toString();
-			var popoverContent = "<input type=\"text\" class=\"form-control\" placeholder=\"Comment\" id=\"COMMENT_ID\"><br /><div class=\"btn-group\"><button class='btn btn-default' id='ZOOM_ID'><i class='icon-zoom-in'></i> Zoom</button><button class='btn btn-primary' id='ADD_RANGE_ID'><i class='icon-map-marker'></i> Add Range Marker</button></div>".replace("ZOOM_ID",ZOOM_ID).replace("ADD_RANGE_ID",ADD_RANGE_ID).replace("COMMENT_ID",COMMENT_ID);
+			var popoverContent = "<input type=\"text\" class=\"form-control\" placeholder=\"Comment\" id=\"COMMENT_ID\"><br /><input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"000\"  class=\"pick-a-color form-control\"><br /><div class=\"btn-group\"><button class='btn btn-default' id='ZOOM_ID'><i class='icon-zoom-in'></i> Zoom</button><button class='btn btn-primary' id='ADD_RANGE_ID'><i class='icon-map-marker'></i> Add Range Marker</button></div>".replace("ZOOM_ID",ZOOM_ID).replace("ADD_RANGE_ID",ADD_RANGE_ID).replace("COMMENT_ID",COMMENT_ID);
 			
 			$(that.graph).find("rect.zoomrect").popover({
 				html: true,
@@ -730,9 +730,16 @@ var Grapher = function(div, opts) {
 				$(that.graph).find("rect.zoomrect").popover('destroy');
 				that.datasourceContainer.select("rect.zoomrect").remove();
 				var comment = $("input#" + COMMENT_ID).attr("value");
-				that.addRangeMarker(start,end, comment);
+				var color =  $("input#" + COMMENT_ID + "_COLOR").attr("value");
+				that.addRangeMarker(start,end, comment,color);
 				
 			});
+			try {
+				$(".pick-a-color").pickAColor();
+			}
+			catch (error) {
+				console.log(error);
+			}
 			
 			
 			
@@ -743,12 +750,12 @@ var Grapher = function(div, opts) {
 		}
 	};
 	
-	this.addRangeMarker = function(start,end, comment) {
+	this.addRangeMarker = function(start,end, comment, color) {
 		if (!that.datasource.hasOwnProperty("rangeMarkers")) {
 			that.datasource.rangeMarkers = new Array();
 		}
 		console.log("Start: " + start + " End: " + end + " Comment: " + comment);
-		that.datasource.rangeMarkers.push({"startTime":start,"endTime":end, "comment": comment});
+		that.datasource.rangeMarkers.push({"startTime":start,"endTime":end, "comment": comment, "color":color});
 		that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
 		that.updateCache();
 	
@@ -896,8 +903,8 @@ var Grapher = function(div, opts) {
 					.attr("class","rangemarker")
 					.attr("data-index",i)
 					.attr("x", that.datasource.x.invert(that.datasource.offsetForTime(marker.startTime) ))
-					.style("fill","#333")
-					.style("opacity",0.8)
+					.style("fill","#" + marker.color)
+					.style("opacity",0.5)
 					.attr("y", 0)
 					.attr("width", that.datasource.x.invert(that.datasource.offsetForTime(marker.endTime)) - that.datasource.x.invert(that.datasource.offsetForTime(marker.startTime) ))
 					.attr("height", that.h)
