@@ -63,6 +63,7 @@ module.exports = function(grunt) {
           main: {
             files: [
               {expand: true, src: ['css/*'], dest: 'dist/'}, // includes files in path
+              {expand: true, src: ['js/*.min.js'], dest: 'dist/'}, // includes files in path
               {expand: true, src: ['index.html'], dest: 'dist/'}, // includes files in path
               {expand: true, src: ['embed.html'], dest: 'dist/'} // includes files in path
             ]
