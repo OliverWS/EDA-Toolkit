@@ -871,7 +871,7 @@ var Grapher = function(div, opts) {
 			var end = that.datasource.timeForOffset( int( that.datasource.x( xmax ) ) );
 			var idx = d3.select(rect).attr("data-index")*1;
 			
-			that.datasource.rangeMarkers[idx] = {"startTime":start,"endTime":end, "comment":$("input#" + COMMENT_ID).attr("value") };
+			that.datasource.rangeMarkers[idx] = {"startTime":start,"endTime":end, "comment":$("input#" + COMMENT_ID).attr("value"), "color":$("input#" + COMMENT_ID+"_COLOR").attr("value")};
 			that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
 			that.updateCache();
 		});	
@@ -903,7 +903,7 @@ var Grapher = function(div, opts) {
 					.attr("class","rangemarker")
 					.attr("data-index",i)
 					.attr("x", that.datasource.x.invert(that.datasource.offsetForTime(marker.startTime) ))
-					.style("fill","#" + marker.color)
+					.style("fill",("#" + marker.color))
 					.style("opacity",0.5)
 					.attr("y", 0)
 					.attr("width", that.datasource.x.invert(that.datasource.offsetForTime(marker.endTime)) - that.datasource.x.invert(that.datasource.offsetForTime(marker.startTime) ))
