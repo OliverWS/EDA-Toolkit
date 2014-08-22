@@ -310,6 +310,39 @@
 			
 						};
 						
+						g.onDoubleClick(function(t){
+								console.log("Got double click, starting video at time: " + t.toTimeString());
+								var videoFiles = $("video");
+								console.log(videoFiles);
+								for (var j = 0; j < videoFiles.length; j++) {
+									var otherPlayer = _V_(videoFiles[j]);
+									console.log(otherPlayer);
+									if($("#" + otherPlayer.id).attr("data-start-time")){
+										var videoStart = new Date(parseInt($("#" + otherPlayer.id).attr("data-start-time")));
+									}
+									else {
+						
+										var startTime = $("#" + otherPlayer.id).find("video").attr("filename");
+										//01-17-2013 09:03:45.mp4
+										var date = startTime.split(" ")[0].split("-").map(parseInt);
+										var time = startTime.split(" ")[1].split(".m")[0].split("_").map(parseFloat);
+										console.log(date + " " + time);
+										var videoStart = new Date(date[0], date[1]-1, date[2], time[0], time[1], Math.floor(time[2]),(time[2]-Math.floor(time[2]))*1000.0 );
+										
+									}
+									var delta = t.sub(videoStart);
+									console.log("Updating  player to time: " + delta/1000.0);
+									otherPlayer.currentTime(delta/1000.0);
+										
+								}
+								for (var j = 0; j < videoFiles.length; j++) {
+									_V_(videoFiles[j]).play();
+								}
+							
+						
+						
+						});
+						
 						setTimeout(function() {
 							$(".toolbar-buttons").removeClass("hide");
 							if (g.datasource.channels.find("Tonic").length > 0) {

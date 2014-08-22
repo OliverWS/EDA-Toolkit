@@ -151,6 +151,12 @@ yText {
 	fill: #B6E1F2;
 }
 
+path.Estimated_HR {
+fill: #CC0000;
+stroke: #C40000;
+}
+
+
 .accX {
 	stroke: red;
 	fill: none;
