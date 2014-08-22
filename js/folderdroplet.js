@@ -85,8 +85,7 @@ var FolderDroplet = function(id, callback, opts) {
 		$("video").attr("width", "auto");
 		for (var i = 0; i < that.videoFiles.length; i++) {
 			var player = that.videoFiles[i];
-			$("#" + player.id).css("margin-left", ($("#" + that.id).width() - $("#" + player.id).width())/2);
-			
+				$("#" + player.id).css("margin-left", ($("#" + that.id).width() - $("#" + player.id).width())/2);
 			player.addEvent("timeupdate", function(e) {
 	
 				if($("#" + this.id).attr("data-start-time")){
@@ -114,26 +113,6 @@ var FolderDroplet = function(id, callback, opts) {
 						console.log(error);
 					}
 					
-				}
-				for (var j = 0; j < that.videoFiles.length; j++) {
-					var otherPlayer = that.videoFiles[j];
-					if(otherPlayer != this){
-						if($("#" + this.id).attr("data-start-time")){
-							var otherVideoStart = new Date(parseInt($("#" + this.id).attr("data-start-time")));
-						}
-						else {
-			
-							var startTime = $("#" + this.id).find("video").attr("filename");
-							//01-17-2013 09:03:45.mp4
-							var date = startTime.split(" ")[0].split("-").map(parseInt);
-							var time = startTime.split(" ")[1].split(".m")[0].split("_").map(parseFloat);
-							console.log(date + " " + time);
-							var otherVideoStart = new Date(date[0], date[1]-1, date[2], time[0], time[1], Math.floor(time[2]),(time[2]-Math.floor(time[2]))*1000.0 );
-							
-						}
-						otherPlayer.currentTime((videoStart.add(delta)).sub(otherVideoStart));
-						
-					}
 				}
 	
 			});

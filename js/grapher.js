@@ -424,7 +424,8 @@ var Grapher = function(div, opts) {
 		that.datasourceContainer = edaContainer;
 		that.datasourceContainer
 			.on('mousedown',that.mousedown)
-			.on('mouseup',that.mouseup);
+			.on('mouseup',that.mouseup)
+			.on('dblclick', that.handleDoubleClick);
 		
 		
 		that.renderGrid(that.datasourceContainer, that.channels[0]);
@@ -914,6 +915,37 @@ var Grapher = function(div, opts) {
 		}
 	
 	};
+	
+	this.handleDoubleClick = function(t) {
+		var t = that.datasource.timeForOffset(that.datasource.x(d3.mouse(this)[0]));
+		console.log("Double click at time: " + t.toTimeString());
+		for (var i = 0; i < that.doubleClickCallbacks.length; i++) {
+			(that.doubleClickCallbacks[i])(t);
+		}
+	
+	};
+	
+	this.onDoubleClick = function(callback) {
+		if(!this.hasOwnProperty("doubleClickCallbacks")){
+			
+			this.doubleClickCallbacks = [];
+		}
+		this.doubleClickCallbacks.push(callback);	
+	
+	};
+	this.offDoubleClick = function(callback) {
+		if(!this.hasOwnProperty("doubleClickCallbacks")){
+			
+			this.doubleClickCallbacks = [];
+		}
+		var index = this.doubleClickCallbacks.indexOf(callback);
+		
+		if (index > -1) {
+		   this.doubleClickCallbacks.splice(index, 1);
+		}
+	
+	};
+	
 	
 	this.updateCursor = function(time) {
 		//console.log(time);
