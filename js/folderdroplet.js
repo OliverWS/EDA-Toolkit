@@ -82,10 +82,12 @@ var FolderDroplet = function(id, callback, opts) {
 	that.setupHandlers = function(vplayer) {
 		console.log("Video Width: " + $("video").width());
 		$("video").attr("height", 320);
-		$("video").attr("width", "auto");
+		$("video").attr("width",$("video").attr("height")*16.0/9.0 );
 		for (var i = 0; i < that.videoFiles.length; i++) {
 			var player = that.videoFiles[i];
+			if (that.videoFiles.length == 1) {
 				$("#" + player.id).css("margin-left", ($("#" + that.id).width() - $("#" + player.id).width())/2);
+			}
 			player.addEvent("timeupdate", function(e) {
 	
 				if($("#" + this.id).attr("data-start-time")){

@@ -293,8 +293,8 @@ rect.detail {
 	div.video {
 		height: auto;
 		width: 480px;
-		clear: both;
 		margin: 15px;
+		float: left;
 	}
 	
 	a.selected-channel {
