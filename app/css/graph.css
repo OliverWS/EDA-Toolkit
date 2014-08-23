@@ -246,6 +246,8 @@ rect.detail {
 		//margin: 20px;
 		height: 300px	;
 		width: 100%;
+		clear: both;
+		margin-top: 50px;
 		
 	}
 	
