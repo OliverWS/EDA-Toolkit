@@ -173,6 +173,42 @@ stroke: #C40000;
 /* Adding colors for social lens headers 
  * [u'timestamp', u'yaw', u'heading', u'roll', u'pitch']
  */
+	
+path {
+	stroke: black;
+	fill: gray;
+	opacity:0.8
+}
+
+
+path:nth-child(1){
+	stroke: black;
+	fill: none;
+}
+path:nth-child(2){
+	stroke: #00CC00;
+	fill: none;
+}
+
+path:nth-child(3){
+	stroke: #0000CC;
+	fill: none;
+}
+
+path:nth-child(4){
+	stroke: #CCCC00;
+	fill: none;
+}
+
+path:nth-child(4){
+	stroke: #00CCCC;
+	fill: none;
+}
+
+
+
+
+
 path.heading {
 	stroke: #CC0000;
 	fill: none;
@@ -200,6 +236,8 @@ path.OtherSpeech {
 	stroke: #F15D46;
 	fill: #F15D46;
 }
+
+
 
 
 g.detail {
@@ -319,12 +357,6 @@ rect.detail {
 	.channel-select-dropdown > li a.selected-channel:hover::after {
 		float: right;
 		content: "\00D7";
-	}
-	
-	path {
-		stroke: black;
-		fill: gray;
-		opacity:0.8
 	}
 	
 	

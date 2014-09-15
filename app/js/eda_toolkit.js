@@ -1149,7 +1149,7 @@ var qLogFile =  function () {
 		////console.log(event);
 		switch (msg.cmd) {
 		  case 'console':
-//		    console.log(msg.msg);
+		    console.log(msg.msg);
 		    break;
 		  case 'metadata':
 		    that.metadataDidLoad(msg.data);
@@ -2189,6 +2189,8 @@ var Grapher = function(div, opts) {
 		
 			if (validChannels.find(c).length == 0) {
 				that.datasourceContainer.select("#"+c).remove();
+				that.datasourceContainer.selectAll("."+c).remove();
+				that.datasourceContainer.selectAll(".axis-label-"+c).remove();
 			}
 		}
 		
@@ -3102,4 +3104,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:142}
+var version = {build:143}
