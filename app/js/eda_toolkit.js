@@ -1898,6 +1898,7 @@ var Grapher = function(div, opts) {
 	this.opts = opts || {};
 	this.channels = this.opts.channel || ["EDA"];
 	this.autoscale = this.opts.autoscale || true;
+	that.headroom = this.opts.headroom || 0.2;
 	that.showAcc = false;
 	this.units = {
 		"EDA": "\u03BC" + "S",
@@ -2902,7 +2903,7 @@ var Grapher = function(div, opts) {
 						nonAccData.push(data[i]);
 					}
 				}
-				var y = d3.scale.linear().domain([nonAccData.map(function(d){return d.min();}).min(),nonAccData.map(function(d){return d.max();}).max()]).range([that.h*(2.0/3.0), 0]);
+				var y = d3.scale.linear().domain([nonAccData.map(function(d){return d.min();}).min()*(1.0-that.headroom),nonAccData.map(function(d){return d.max();}).max()*(1.0+that.headroom)]).range([that.h*(2.0/3.0), 0]);
 				
 			}
 			else {
@@ -3104,4 +3105,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:144}
+var version = {build:145}
