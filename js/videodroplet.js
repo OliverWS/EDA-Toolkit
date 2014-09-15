@@ -5,8 +5,8 @@ var VideoDroplet = function(id, callback, opts) {
 	that.extension = opts.extension || false;
 	that.callback = callback;
 	that.vsize = opts.vsize || {};
-	that.vsize.width = that.vsize.width || 640;
-	that.vsize.height = that.vsize.height || 320;
+	that.vsize.width = that.vsize.width || 720;
+	that.vsize.height = that.vsize.height || that.vsize.width*(9./16.);
 	
 	
 	
