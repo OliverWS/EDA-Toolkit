@@ -1029,9 +1029,27 @@ self.parseDSVHeaders = function(metadata,del) {
 		catch (error) {
 			headers["Sampling Rate"] = 1.0;
 		}
+		headers["Start Time"]  = new Date( t1 );
+
+	}
+	else {
+		//Maybe it's an empatica file
+		try {
+			headers["Start Time"]  = new Date( Date.parse(metadata[0].split(del)[0]) );
+			headers["Sampling Rate"] = metadata[1].split(del)[0];
+
+			for(var i=0; i < colNames.length; i++){
+				headers["Column Names"][i] = "Channel " + i;
+			}
+
+		}
+		catch (error){
+			headers["Sampling Rate"] = 1.0;
+		}
+
 	}
 	self.metadata = metadata;
-	headers["Start Time"]  = new Date( t1 );
+
 	self.postMessage({cmd:"metadata", data:headers});
 	
 	return headers;

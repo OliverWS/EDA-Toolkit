@@ -1083,8 +1083,8 @@ var VideoDroplet = function(id, callback, opts) {
 	that.extension = opts.extension || false;
 	that.callback = callback;
 	that.vsize = opts.vsize || {};
-	that.vsize.width = that.vsize.width || 640;
-	that.vsize.height = that.vsize.height || 320;
+	that.vsize.width = that.vsize.width || 720;
+	that.vsize.height = that.vsize.height || that.vsize.width*(9./16.);
 	
 	
 	
@@ -1565,8 +1565,8 @@ var FolderDroplet = function(id, callback, opts) {
 	that.extension = opts.extension || "eda";
 	that.callback = callback;
 	that.vsize = opts.vsize || {};
-	that.vsize.width = that.vsize.width || 640;
-	that.vsize.height = that.vsize.height || 320;
+	that.vsize.width = that.vsize.width || $("html").width()/2;
+	that.vsize.height = that.vsize.height || that.vsize.width*(9./16.);
 	that.graphs = [];
 	that.videoFiles = [];
 	that.msg = opts.msg || "<i class='icon-folder-open'></i>  Drop folder here to view";
@@ -1641,8 +1641,8 @@ var FolderDroplet = function(id, callback, opts) {
 			
 	that.setupHandlers = function(vplayer) {
 		console.log("Video Width: " + $("video").width());
-		$("video").attr("height", 320);
-		$("video").attr("width",$("video").attr("height")*16.0/9.0 );
+		$("video").attr("height", 720);
+		$("video").attr("width",720*(16.0/9.0) );
 		for (var i = 0; i < that.videoFiles.length; i++) {
 			var player = that.videoFiles[i];
 			if (that.videoFiles.length == 1) {
@@ -3102,4 +3102,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:140}
+var version = {build:141}
