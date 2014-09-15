@@ -134,16 +134,10 @@ self.parseDSVHeaders = function(metadata,del) {
 			var t2 = Date.parse(rows[1][0]);
 			var fs = 1000.0/(t2-t1);
 			headers["Sampling Rate"] = fs;
+			headers["Start Time"]  = new Date( t1 );
 		}
 		catch (error) {
-			headers["Sampling Rate"] = 1.0;
-		}
-		headers["Start Time"]  = new Date( t1 );
-
-	}
-	else {
-		//Maybe it's an empatica file
-		try {
+			//Maybe it's a weird empatica file
 			headers["Start Time"]  = new Date( Date.parse(metadata[0].split(del)[0]) );
 			headers["Sampling Rate"] = metadata[1].split(del)[0];
 
@@ -151,9 +145,6 @@ self.parseDSVHeaders = function(metadata,del) {
 				headers["Column Names"][i] = "Channel " + i;
 			}
 
-		}
-		catch (error){
-			headers["Sampling Rate"] = 1.0;
 		}
 
 	}
