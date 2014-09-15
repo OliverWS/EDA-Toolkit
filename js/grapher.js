@@ -305,6 +305,8 @@ var Grapher = function(div, opts) {
 		
 			if (validChannels.find(c).length == 0) {
 				that.datasourceContainer.select("#"+c).remove();
+				that.datasourceContainer.selectAll("."+c).remove();
+				that.datasourceContainer.selectAll(".axis-label-"+c).remove();
 			}
 		}
 		

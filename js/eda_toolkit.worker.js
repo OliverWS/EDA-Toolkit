@@ -135,15 +135,25 @@ self.parseDSVHeaders = function(metadata,del) {
 			var fs = 1000.0/(t2-t1);
 			headers["Sampling Rate"] = fs;
 			headers["Start Time"]  = new Date( t1 );
+			//Now assert that the values are okay
+			if(isNaN(headers["Sampling Rate"])){
+				throw "Sample rate invalid: " + fs;
+			}
+			if(isNaN(headers["Start Time"])){
+				throw "Invalid Start Time: " + t1;
+			}
+			console.log("Successfully identified sample rate: " + fs + " and start time: " + headers["Start Time"].toString());
 		}
 		catch (error) {
 			//Maybe it's a weird empatica file
-			headers["Start Time"]  = new Date( Date.parse(metadata[0].split(del)[0]) );
-			headers["Sampling Rate"] = metadata[1].split(del)[0];
+			console.log("Treating file as empatica format (first row is starttime, second row is sample rate)")
+			headers["Start Time"]  = new Date( parseFloat(metadata[0].split(del)[0])*1000.0 ); //Convert to ms since 1970
+			headers["Sampling Rate"] = parseFloat(metadata[1].split(del)[0]);
 
 			for(var i=0; i < colNames.length; i++){
-				headers["Column Names"][i] = "Channel " + i;
+				headers["Column Names"][i] = "Channel_" + i;
 			}
+			console.log("Empatica file: Successfully identified sample rate: " + headers["Sampling Rate"] + " and start time: " + headers["Start Time"].toString());
 
 		}
 
