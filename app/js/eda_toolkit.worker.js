@@ -962,9 +962,9 @@ self.parse = function(text) {
 			var headerPlusBody = text.split(LF);
 			var headers = headerPlusBody.slice(0, 4);
 			console.log("Headers: " + headers.join("|"));
-			var body = text.replace(headers[0]+LF, "");
 			var parsedHeaders = self.parseDSVHeaders(headers,",");	
 			console.log("Parsed Headers: " + parsedHeaders["Column Names"].join(","));
+			var body = text.replace(parsedHeaders["headerLines"], "");
 			text = null;
 			self.parseTextData(body, parsedHeaders["Column Names"]);
 			break;
@@ -1015,6 +1015,7 @@ self.parseDSVHeaders = function(metadata,del) {
 	var headers = {};
 	headers["Column Names"] = colNames;
 	//now we have to infer sample rate based on some samples. Assume that time column is left-most
+	headers["headerLines"] = metadata[0] + LF;
 	var rows = [];
 	for (var i = 1; i < metadata.length; i++) {
 		rows.push(metadata[i].split(del));
@@ -1044,6 +1045,7 @@ self.parseDSVHeaders = function(metadata,del) {
 			for(var i=0; i < colNames.length; i++){
 				headers["Column Names"][i] = "Channel_" + i;
 			}
+			headers["headerLines"] += metadata[1] + LF;
 			console.log("Empatica file: Successfully identified sample rate: " + headers["Sampling Rate"] + " and start time: " + headers["Start Time"].toString());
 
 		}
