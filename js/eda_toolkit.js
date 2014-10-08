@@ -29,11 +29,11 @@ var qLogFile =  function () {
 		  case 'filter':
 		    that.callback(msg.data);
 		    break;
-		  
+
 		  case 'progress':
 		  	that.updateProgress(100*msg.progress.toFixed(2));
 		  	break;
-		  
+
 		  case 'downsampled':
 		  	console.log("Got downsampled data back");
 		  	if (msg.key) {
@@ -46,7 +46,7 @@ var qLogFile =  function () {
 		  		that.callback = null;
 		  	}
 		  	break;
-		  	
+
 		  case undefined:
 		    //console.log(msg);
 		    break;
@@ -57,7 +57,7 @@ var qLogFile =  function () {
 			that.didAlreadyLoad = true;
 			that.didLoad();
 		}
-	
+
 	};
 	this.hash = function() {
 		if (!that.didAlreadyLoad) {
@@ -67,7 +67,7 @@ var qLogFile =  function () {
 			var hash = that.startTime.toString() + "_" + that.endTime.toString() + "_" + that.filename + "_"+ that.data.length*that.data[that.channels[0]][0];
 			return hash;
 		}
-	
+
 	};
 	this.load = function(url, callback, filename) {
 		this.url = url;
@@ -77,17 +77,17 @@ var qLogFile =  function () {
 		else {
 			this.filename = url.split("/").slice(-1);
 		}
-		
+
 		this.callback = callback;
 		if(this.worker == undefined) {
 			this.worker = new Worker("js/eda_toolkit.worker.js");
 		}
 		this.worker.onmessage = this.handleMessage;
-		this.worker.postMessage({cmd:"load",url:this.url});
+		this.worker.postMessage({cmd:"load",url:this.url,"filename":this.filename});
 		//console.log("Loading: " + this.url + "...");
-	
+
 	};
-	
+
 	this.loadText = function(data, callback, filename) {
 		this.callback = callback;
 		if(filename != undefined) this.filename = filename;
@@ -95,12 +95,12 @@ var qLogFile =  function () {
 			this.worker = new Worker("js/eda_toolkit.worker.js");
 		}
 		this.worker.onmessage = this.handleMessage;
-		this.worker.postMessage({cmd:"loadText","data":data});
+		this.worker.postMessage({cmd:"loadText","data":data,"filename":this.filename});
 		//console.log("Loading from text...");
-	
+
 	};
-	
-	
+
+
 	this.updateProgress = function(progress) {
 		if(this.progress != undefined) {
 			$("#" + this.progress).find("div.progress-bar").css("width", Math.round(progress) + "%");
@@ -108,9 +108,9 @@ var qLogFile =  function () {
 		else {
 			//console.log("Progress: " + Math.round(progress) + "%");
 		}
-	
+
 	};
-	
+
 	this.didLoad = function() {
 		//console.log(this);
 		if (localStorage[that.hash()] != undefined) {
@@ -121,12 +121,12 @@ var qLogFile =  function () {
 			this.callback.call(that);
 		}
 	};
-	
+
 	this.validate = function() {
 		return (this.metadata && this.data);
-	
+
 	};
-	
+
 	this.metadataDidLoad = function(metadata) {
 		//console.log("Got metadata");
 		//console.log(metadata);
@@ -134,9 +134,9 @@ var qLogFile =  function () {
 		this.startTime = this.metadata["Start Time"];
 		this.sampleRate = this.metadata["Sampling Rate"];
 		this.channels = this.metadata["Column Names"].filter(function(d){return !((d.toLowerCase().indexOf("time") > -1) || (d.toLowerCase().indexOf("date") > -1)  );});
-	
+
 	};
-	
+
 	this.dataDidLoad = function(data) {
 		//console.log("Got data");
 		this.data = data;
@@ -148,9 +148,9 @@ var qLogFile =  function () {
 		this.duration = this.endTime.sub(this.startTime);
 		//console.log("EDA Length: " + data.EDA.length);
 		//console.log("EDA: " + data.EDA[0]);
-		
+
 	};
-	
+
 	this.setData = function(channel, newData){
 		//console.log("Channel is " + channel);
 		//console.log("Length of new data is " + newData.length);
@@ -163,30 +163,30 @@ var qLogFile =  function () {
 			//console.log("New data (" + newData.length + ") and original data + (" + that.data.length + ") have different lengths!");
 		}
 	};
-	
+
 	this.getData = function(channel) {
 		return that.data[channel];
-	
+
 	};
-	
+
 	this.filter = function(channel, filterType, callback) {
 		that.callback = function(newData) {
 			//console.log("In callback, newData.length=" + newData.length);
 			that.setData(channel, newData);
 			callback(that);
-		
+
 		};
 		var dat = that.getData(channel);
 		//console.log("Sending data of length: " + dat.length);
 		that.worker.postMessage({cmd:"filter", data:{"data":dat, "filterType": filterType, "width":that.sampleRate}});
-		
+
 	};
-	
+
 	this.offsetForTime = function(time) {
 		var diff = time.sub(this.startTime);
 		if(diff.valueOf() >= 0 && diff.valueOf() < this.duration.valueOf()) {
 			return Math.round( diff.valueOf()/(1000.0/this.sampleRate) );
-		
+
 		}
 		else if (diff.valueOf() >= 0 && diff.valueOf() == this.duration.valueOf()) {
 			return this.data.length-1;
@@ -194,14 +194,14 @@ var qLogFile =  function () {
 		else {
 			throw "Illegal Time: " + time +". Time must be between " + this.startTime + " and " + this.endTime;
 		}
-		
+
 	};
-	
+
 	this.timeForOffset = function(offset) {
 		var offsetMilliseconds = offset*(1000.0/this.sampleRate);
 		if((offsetMilliseconds >= 0) && (offsetMilliseconds < this.duration.valueOf())) {
 			return this.startTime.add(TimeDelta(offsetMilliseconds));
-		
+
 		}
 		else if ((offsetMilliseconds >= 0) && (offsetMilliseconds == this.duration.valueOf())) {
 			return this.endTime;
@@ -210,7 +210,7 @@ var qLogFile =  function () {
 			console.log( "Illegal Offset: " + offset +". Offset must be between " + 0 + " and " + this.data.length-1 );
 			return this.startTime.add(TimeDelta(offsetMilliseconds));
 		}
-		
+
 	};
 	this.get = function(callback, opts) {
 		var opts = opts || {};
@@ -218,8 +218,8 @@ var qLogFile =  function () {
 		var end = opts.end || this.timeForOffset(that.data.EDA.length - 1);
 		var channels = opts.channels || ["EDA","X","Y","Z"];
 		var targetSamples = opts.targetSamples || (this.offsetForTime(end) - this.offsetForTime(start));
-		console.log("start: " + start + "("+this.offsetForTime(start)+") \n end: "+ end + "("+this.offsetForTime(end)+") \n targetSamples: " + targetSamples);  
-		that.getMultiChannelDataForOffsetRange(channels, this.offsetForTime(start), this.offsetForTime(end), targetSamples, 
+		console.log("start: " + start + "("+this.offsetForTime(start)+") \n end: "+ end + "("+this.offsetForTime(end)+") \n targetSamples: " + targetSamples);
+		that.getMultiChannelDataForOffsetRange(channels, this.offsetForTime(start), this.offsetForTime(end), targetSamples,
 		  function(data) {
 		    console.log(data);
 		    var combinedData = new Array();
@@ -233,12 +233,12 @@ var qLogFile =  function () {
 		      combinedData.push(sample);
 		    }
 		    callback(combinedData);
-		  
+
 		  });
-		
-	  
+
+
 	};
-	
+
 	this.getData = function(channel, targetSamples, callback) {
 		var points = that.data[channel];
 		if (targetSamples) {
@@ -254,17 +254,17 @@ var qLogFile =  function () {
 		else {
 			return points;
 		}
-	
+
 	};
-	
+
 	this.findSCRs = function(callback, start, end) {
 		if(start == undefined) start = 0;
 		if(end == undefined) end = that.data.EDA.length - 1;
 		that.callback = callback;
 		that.worker.postMessage({cmd:"scrs", data:{"points":this._getDataForOffsetRange("EDA", start, end), width: that.sampleRate}});
-	
+
 	};
-	
+
 	this.getDataForOffsetRange = function(channel, start, end, targetSamples, callback) {
 		if(channel.toLowerCase() == "acc") {
 			that.getMultiChannelDataForOffsetRange(["X","Y","Z"], start, end, targetSamples, callback);
@@ -274,7 +274,7 @@ var qLogFile =  function () {
 			if (callback) {
 				var token = (Math.random()*10).toString();
 				that.callbacks[token] = callback;
-				
+
 				this.worker.postMessage({cmd:"downsample", data:{"points":points, target:targetSamples, key:token}});
 			}
 			else {
@@ -282,7 +282,7 @@ var qLogFile =  function () {
 			}
 		}
 	};
-	
+
 	that.getMultiChannelDataForOffsetRange = function(channels, start, end, targetSamples, callback) {
 		var data = [];
 		for (var i = 0; i < channels.length; i++) {
@@ -297,8 +297,8 @@ var qLogFile =  function () {
 			return points;
 		}
 	};
-	
-	
+
+
 	this._getDataForOffsetRange = function(channel, start, end) {
 		if( (start >= 0) && (end < this.data.length) && this.data.hasOwnProperty(channel)) {
 			return this.data[channel].slice(start, end);
@@ -306,13 +306,13 @@ var qLogFile =  function () {
 		else {
 			return [];
 		}
-		
-	
+
+
 	};
-	
+
 	this.getDataForTimeRange = function(channel, startTime, endTime, targetSamples, callback) {
 		var points = this._getDataForTimeRange(channel, startTime, endTime);
-		
+
 		if(callback) {
 			that.callback = callback;
 			this.worker.postMessage({cmd:"downsample", data:{"points":points, target:targetSamples}});
@@ -321,14 +321,14 @@ var qLogFile =  function () {
 			return points;
 		}
 	};
-	
-	
-	
+
+
+
 	this._getDataForTimeRange = function(channel, startTime, endTime) {
 		var channel = channel || "EDA";
 		var start = this.offsetForTime(startTime);
 		var stop = this.offsetForTime(endTime);
-		
+
 		if(start != NaN && end != NaN) {
 			if(this.data.hasOwnProperty(channel)) {
 				return this.data[channel].slice(start, stop);
@@ -337,30 +337,30 @@ var qLogFile =  function () {
 		else {
 			return [];
 		}
-	
+
 	};
-	
+
 	this.saveFileAs = function(file) {
 		var b = new Blob([file], {type: "text/plain;charset=UTF-8"});
 		saveAs(b, that.filename);
 	};
-	
+
 	this.savePDF = function() {
-		
-	
+
+
 	}
-	
+
 	this.saveToDropbox = function(dropbox) {
 		this.exportToCSV(function(data) {
 			dropbox.writeFile(that.filename, data, function() {
-				new Notify("File uploaded to Dropbox!");				
-			
+				new Notify("File uploaded to Dropbox!");
+
 			});
 		});
-	
+
 	}
-	
-	
+
+
 	this.exportToCSV = function(callback) {
 		if (callback) {
 			that.callback = callback;
@@ -368,6 +368,6 @@ var qLogFile =  function () {
 		else {
 			that.callback = that.saveFileAs;
 		}
-		that.worker.postMessage({cmd:"export", data:{data:that.data, metadata:that.metadata, useBlob: false} });	
+		that.worker.postMessage({cmd:"export", data:{data:that.data, metadata:that.metadata, useBlob: false} });
 	}
 };
