@@ -900,13 +900,17 @@ self.addEventListener('message', function(e) {
   var data = e.data;
   switch (data.cmd) {
     case 'load':
-      self.get(data.url, self.parse);
+    	if(data.filename != undefined)
+				self.filename = data.filename;
+		  self.get(data.url, self.parse);
       break;
-    
+
     case 'loadText':
-      self.parse(data.data);
+      if(data.filename != undefined)
+					self.filename = data.filename;
+			self.parse(data.data);
       break;
-    
+
     case 'downsample':
     	self.downsample(data.data);
     	break;
@@ -917,16 +921,16 @@ self.addEventListener('message', function(e) {
     case 'scrs':
     	self.SCRs(data.data);
     	break;
-    
+
     case 'export':
     	self.export(data.data);
     	break;
-    
+
     case 'filter':
     	self.filter(data.data);
     	break;
-    
-    
+
+
     case 'stop':
       self.postMessage('WORKER STOPPED: ' + data.msg + '. (buttons will no longer work)');
       self.close(); // Terminates the worker.
@@ -946,7 +950,7 @@ self.parse = function(text) {
 		case "edafile":
 			var headerPlusBody = text.split(separator);
 			var headers = headerPlusBody[0].split(LF);
-			var parsedHeaders = self.parseHeaders(headers);	
+			var parsedHeaders = self.parseHeaders(headers);
 			text = null;
 			if(parsedHeaders["File Version"] < 1.1) {
 				self.parseTextData(headerPlusBody[1], ["Z","Y","X","Battery","Temperature","EDA"]);
@@ -962,7 +966,7 @@ self.parse = function(text) {
 			var headerPlusBody = text.split(LF);
 			var headers = headerPlusBody.slice(0, 4);
 			console.log("Headers: " + headers.join("|"));
-			var parsedHeaders = self.parseDSVHeaders(headers,",");	
+			var parsedHeaders = self.parseDSVHeaders(headers,",");
 			console.log("Parsed Headers: " + parsedHeaders["Column Names"].join(","));
 			var body = text.replace(parsedHeaders["headerLines"], "");
 			text = null;
@@ -973,21 +977,21 @@ self.parse = function(text) {
 			var headers = headerPlusBody.slice(0, 4);
 			console.log("Headers: " + headers.join("|"));
 			var body = text.toString().replace(headers[0]+LF, "");
-			var parsedHeaders = self.parseDSVHeaders(headers,"\t");	
+			var parsedHeaders = self.parseDSVHeaders(headers,"\t");
 			console.log("Parsed Headers: " + parsedHeaders["Column Names"].join("\t"));
 			text = null;
 			self.parseTextData(body, parsedHeaders["Column Names"]);
 			break;
-		
+
 		default:
 			var headerPlusBody = text.toString().split(LF);
 			var headers = headerPlusBody.slice(0, 4);
 			var body = text.toString().replace(headers[0]+LF, "");
 			text = null;
-			var parsedHeaders = self.parseDSVHeaders(headers,",");	
+			var parsedHeaders = self.parseDSVHeaders(headers,",");
 			self.parseTextData(body, parsedHeaders["Column Names"]);
 			break;
-			
+
 	}
 }
 
@@ -1041,9 +1045,17 @@ self.parseDSVHeaders = function(metadata,del) {
 			console.log("Treating file as empatica format (first row is starttime, second row is sample rate)")
 			headers["Start Time"]  = new Date( parseFloat(metadata[0].split(del)[0])*1000.0 ); //Convert to ms since 1970
 			headers["Sampling Rate"] = parseFloat(metadata[1].split(del)[0]);
-
+			var prefix = "Channel";
+			if(self.filename != undefined){
+				 prefix = self.filename.split(".")[0];
+			}
 			for(var i=0; i < colNames.length; i++){
-				headers["Column Names"][i] = "Channel_" + i;
+				if(colNames.length > 1){
+					headers["Column Names"][i] = prefix + "_" + (i+1);
+				}
+				else {
+					headers["Column Names"][i] = prefix;
+				}
 			}
 			headers["headerLines"] += metadata[1] + LF;
 			console.log("Empatica file: Successfully identified sample rate: " + headers["Sampling Rate"] + " and start time: " + headers["Start Time"].toString());
@@ -1054,7 +1066,7 @@ self.parseDSVHeaders = function(metadata,del) {
 	self.metadata = metadata;
 
 	self.postMessage({cmd:"metadata", data:headers});
-	
+
 	return headers;
 
 };
@@ -1108,10 +1120,10 @@ self.parseHeaders = function(metadata) {
 					validColumnNames.push(colNames[i]);
 				}
 			}
-			
+
 			headers["Column Names"] = validColumnNames;
 		}
-	
+
 	}
 	self.metadata = metadata;
 	self.postMessage({cmd:"metadata", data:headers});
@@ -1122,7 +1134,7 @@ self.parseHeaders = function(metadata) {
 self.SCRs = function(opts) {
 	//var data = signals.sanitize(opts.points,[0.0,0.0],[NaN,"-"]);
 	var width = opts.width || 8;
-	
+
 	var crossings = signals.peaks(data, width);
 	console.log("Crossings:");
 	console.log(crossings);
@@ -1152,9 +1164,9 @@ self.filter = function(opts) {
 		default:
 			filteredData = signals.gaussianFilter(data, width);
 			break;
-		
+
 	}
-	
+
 	self.postMessage({cmd:"filter", data: filteredData});
 
 };
@@ -1164,7 +1176,7 @@ self.downsample = function(opts) {
 	console.log("In downsample");
 	var data = signals.sanitize(opts.points,[0.0],[NaN]);
 	var target = opts.target;
-	
+
 	//start with naive downsampling;
 	var downsampled = [];
 	var inc = Math.ceil(data.length/target);
@@ -1175,12 +1187,12 @@ self.downsample = function(opts) {
 	else {
 		//var data = signals.medianFilter(data,inc);
 		var data = gaussianFilter(data, int(inc), 20);
-		
+
 		for(var n=0; n < data.length; n+= inc) {
 			downsampled.push(data[n]);
-		
+
 		}
-		
+
 	}
 	console.log("Downsampled to : " + downsampled.length);
 	self.postMessage({cmd:"downsampled", data:downsampled,"key":opts.key});
@@ -1194,7 +1206,7 @@ self.downsampleMultiChannel = function(opts) {
 	for (var i = 0; i < opts.points.length; i++) {
 		var points = opts.points[i];
 		var data = signals.sanitize(points,[0.0],[NaN]);
-			
+
 		var downsampled = [];
 		var inc = Math.floor(data.length/target);
 		console.log("Data length: " + data.length + " Target: " + target + " so increment is " + inc);
@@ -1204,12 +1216,12 @@ self.downsampleMultiChannel = function(opts) {
 		else {
 			//var data = signals.medianFilter(data,inc);
 			//var data = gaussianFilter(data, int(inc), 20);
-			
+
 			for(var n=0; n < data.length; n+= inc) {
 				downsampled.push(data[n]);
-			
+
 			}
-			
+
 		}
 		downsampledData.push(downsampled);
 	}
@@ -1222,7 +1234,7 @@ self.downsampleMultiChannel = function(opts) {
 self.export = function(opts) {
 	var data = opts.data;
 	var metadata = opts.metadata;
-	
+
 	var csv = "";
 	var channels = ["Z","Y","X","Batt","Temperature","EDA"];
 	//Generate headers
@@ -1241,7 +1253,7 @@ self.export = function(opts) {
 		try {
 			var line = channels.map(function(channel) {return data[channel][i].toFixed(3);}).join(",") + "\r\n";
 			csv += line;
-			
+
 		}
 		catch (error) {
 			console.log(error);
@@ -1251,11 +1263,11 @@ self.export = function(opts) {
 		var bb = new BlobBuilder;
 		bb.push(csv);
 		self.postMessage({cmd:"export", data:bb.getBlob("text/plain;charset=utf-8")});
-		
+
 	}
 	else {
 		self.postMessage({cmd:"export", data:csv});
-		
+
 	}
 };
 
@@ -1272,14 +1284,14 @@ self.parseTextData = function(body, columnHeaders) {
 	body = null;
 	var length = lines.length;
 	for(var n=0; n < length; n++) {
-		if((n % 1000) == 0) { 
+		if((n % 1000) == 0) {
 			self.postMessage({cmd:"progress", progress:(float(n)/length)});
 		}
 		if(lines[n].indexOf(",,,,,") > -1 ){
 			//It's an event
 			data.markers.push({index:n,comment:"",type:"manual"} );
 		}
-		
+
 		else {
 			var values = lines[n].split(",");
 			for(var c=0; c < values.length; c++) {
@@ -1294,13 +1306,13 @@ self.parseTextData = function(body, columnHeaders) {
 					}
 				}
 			}
-			
+
 		}
-	
+
 	}
-	
+
 	self.postMessage({cmd:"data", "data":data});
-	
+
 
 };
 
@@ -1317,17 +1329,17 @@ self.parseBinaryData = function(body, columnHeaders) {
 	data.markers = [];
 	var length = data_packets.length;
 	for(var n=0; n < length; n++){
-	   if((n % 1000) == 0) { 
+	   if((n % 1000) == 0) {
 	   	self.postMessage({cmd:"progress", progress:(float(n)/length)});
 	   }
-	    
+
 	    try {
-	    	
+
 	    	var line = data_packets[n];
 	    	if (line.length != 12) {
 	    		//console.log(line);
 	    		//console.log("Line length: "+ line.length + " at index: " + n  + " of " + length);
-	    		
+
 	    	}
 	    	//console.log("Line: " + line + " | Length: " + line.length);
 	        // check for blank lines that could occur at EOF and log them
@@ -1335,15 +1347,15 @@ self.parseBinaryData = function(body, columnHeaders) {
 	            //console.log("> Encountered a blank line at #" + index + " of (headless) binData - this is most likely EOF");
 	            break;
 	        }
-	        
+
 	        var samples = unpackStruct(line);
 			if (line.length != 12) {
 				console.log(samples);
-				
+
 			}
 	        //# using unrolled loop for speed and code readability
-	        
-	        
+
+
 	        var acc_z = unpackSigned(samples[0]);
 	        var acc_y = unpackSigned(samples[1]);
 	        var acc_x = unpackSigned(samples[2]);
@@ -1351,8 +1363,8 @@ self.parseBinaryData = function(body, columnHeaders) {
 	        var temp  = unpackSigned(samples[4]);
 	        var eda   = unpackUnsigned(samples[5]);
 			//console.log("EDA: " + eda);
-			
-			
+
+
 	        if( eda >= 999 && acc_x <= -999.0) {
 				data.markers.push({index:n,comment:"",type:"manual"} );
 	        }
@@ -1362,7 +1374,7 @@ self.parseBinaryData = function(body, columnHeaders) {
 	        	data[columnHeaders[2]].push(acc_x);
 	        	data[columnHeaders[3]].push(bat_v);
 	        	data[columnHeaders[4]].push(temp);
-	        	data[columnHeaders[5]].push(eda);	        	
+	        	data[columnHeaders[5]].push(eda);
 	        }
 		}
 		catch (error) {
@@ -1370,9 +1382,9 @@ self.parseBinaryData = function(body, columnHeaders) {
 			continue;
 		}
 	}
-	
+
 	self.postMessage({cmd:"data", "data":data});
-	
+
 };
 
 self.get = function(url, callback) {
