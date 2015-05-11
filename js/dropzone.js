@@ -59,7 +59,7 @@ var Dropzone = function(el,callback,opts) {
 	dropzone.ondrop = function(e) {	
 		e.preventDefault();
 		if(that.allowFolders){
-			var entry = that.getFiles(e)[0].webkitGetAsEntry();
+			var entry = that.getFirstFile(e);
 			if(entry.isDirectory){
 				if (document.getElementById("foldername")) {
 					document.getElementById("foldername").innerHTML = entry.name ;
@@ -99,6 +99,15 @@ var Dropzone = function(el,callback,opts) {
 			return e.dataTransfer.items;
 		}
 	}
+	that.getFirstFile = function(e) {
+		if(window.safari != undefined){
+			return that.getFiles(e)[0];
+		}
+		else{
+			return that.getFiles(e)[0].webkitGetAsEntry();
+		}
+	}
+
 	that.traverseFileTree = function(item, path) {
 	  path = path || "";
 	  if (item.isFile && item.name[0] != ".") {
