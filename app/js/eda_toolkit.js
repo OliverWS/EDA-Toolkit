@@ -950,7 +950,7 @@ var Dropzone = function(el,callback,opts) {
 	dropzone.ondrop = function(e) {	
 		e.preventDefault();
 		if(that.allowFolders){
-			var entry = e.dataTransfer.items[0].webkitGetAsEntry();
+			var entry = that.getFiles(e)[0].webkitGetAsEntry();
 			if(entry.isDirectory){
 				if (document.getElementById("foldername")) {
 					document.getElementById("foldername").innerHTML = entry.name ;
@@ -982,7 +982,14 @@ var Dropzone = function(el,callback,opts) {
 
 		}
 	};
-	
+	that.getFiles = function(e) {
+		if(window.safari != undefined){
+			return e.dataTransfer.files;
+		}
+		else{
+			return e.dataTransfer.items;
+		}
+	}
 	that.traverseFileTree = function(item, path) {
 	  path = path || "";
 	  if (item.isFile && item.name[0] != ".") {
@@ -3105,4 +3112,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:149}
+var version = {build:151}
