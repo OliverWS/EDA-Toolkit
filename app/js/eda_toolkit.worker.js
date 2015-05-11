@@ -1234,9 +1234,10 @@ self.downsampleMultiChannel = function(opts) {
 self.export = function(opts) {
 	var data = opts.data;
 	var metadata = opts.metadata;
-
+	console.log("Got a request for data export");
+	console.log(data);
 	var csv = "";
-	var channels = ["Z","Y","X","Batt","Temperature","EDA"];
+	var channels = ["Z","Y","X","Battery","Temperature","EDA"];
 	//Generate headers
 	var headers = "";
 	headers += "Log File Created by EDA Toolkit - " + (new Date()).getYear() +"\r\n";
@@ -1251,24 +1252,36 @@ self.export = function(opts) {
 	//Generate body
 	for (var i = 0; i < data[channels[0]].length; i++) {
 		try {
-			var line = channels.map(function(channel) {return data[channel][i].toFixed(3);}).join(",") + "\r\n";
+			var line = "";
+			for(var j=0; j < channels.length; j++){
+				try{
+					var channel = channels[j];
+					line += data[channel][i].toFixed(3);
+					line += (j == (channels.length-1)) ? "\r\n" : ",";
+
+				}
+				catch(error){
+
+				}
+			}
 			csv += line;
 
 		}
 		catch (error) {
-			console.log(error);
+			//console.log("Problem during export: " + error);
 		}
 	}
-	if (opts.useBlob == true) {
-		var bb = new BlobBuilder;
-		bb.push(csv);
-		self.postMessage({cmd:"export", data:bb.getBlob("text/plain;charset=utf-8")});
 
-	}
-	else {
+	// if (opts.useBlob == true) {
+	// 	var bb = new BlobBuilder;
+	// 	bb.push(csv);
+	// 	self.postMessage({cmd:"export", data:bb.getBlob("text/plain;charset=utf-8")});
+
+	// }
+	// else {
 		self.postMessage({cmd:"export", data:csv});
 
-	}
+	// }
 };
 
 self.parseTextData = function(body, columnHeaders) {

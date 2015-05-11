@@ -1521,7 +1521,9 @@ var qLogFile =  function () {
 		else {
 			that.callback = that.saveFileAs;
 		}
-		that.worker.postMessage({cmd:"export", data:{data:that.data, metadata:that.metadata, useBlob: false} });
+		var data = that.data;
+		var metadata = that.metadata;
+		that.worker.postMessage({cmd:"export", data:{data:data, metadata:metadata, useBlob: false} });
 	}
 };
 
@@ -2640,7 +2642,7 @@ var Grapher = function(div, opts) {
 				
 			});
 			try {
-				$(".pick-a-color").pickAColor();
+				$("input#"+COMMENT_ID+"_COLOR").pickAColor();
 			}
 			catch (error) {
 				console.log(error);
@@ -2672,10 +2674,17 @@ var Grapher = function(div, opts) {
 	};
 	
 	this.editRangeMarker = function(event) {
+		if(that.isEditing){
+			return; //Already editing a range marker, don't do it twice.
+		}
+
+		that.isEditing = true;
 		var rect = this;
 		console.log("Opening edit range marker dialogue");
 		console.log(rect);
 		var idx = d3.select(rect).attr("data-index")*1;
+		d3.select(rect).on("mousedown", null);
+		d3.select(rect).on("click", null);
 
 		that.datasourceContainer.on("mousedown",null);
 		var DONE_ID = "DONE_ID_" + parseInt(Math.random()*1000,10).toString();
@@ -2685,8 +2694,6 @@ var Grapher = function(div, opts) {
 
 
 
-		d3.select(rect).on("mousedown", null);
-		d3.select(rect).on("click", null);
 		d3.select(rect).transition()
 			.attr("y", -that.RANGE_MARKER_HEIGHT)
 			.style("opacity",0.5)
@@ -2790,6 +2797,8 @@ var Grapher = function(div, opts) {
 			that.datasource.rangeMarkers[idx] = {"startTime":start,"endTime":end, "comment":$("input#" + COMMENT_ID).val(), "color":$("input#" + COMMENT_ID+"_COLOR").val() || (that.datasource.rangeMarkers[idx].color)};
 			that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
 			that.updateCache();
+			that.isEditing = false;
+
 		});	
 		$("button#"+REMOVE_ID).on("click", function() {
 			$(rect).popover('destroy');
@@ -2801,9 +2810,10 @@ var Grapher = function(div, opts) {
 			that.datasource.rangeMarkers.splice(idx,1);
 			that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
 			that.updateCache();
+			that.isEditing = false;
 		});	
 		try {
-			$(".pick-a-color").pickAColor();
+			$("input#" + COMMENT_ID+"_COLOR").pickAColor();
 		}
 		catch (error) {
 			console.log(error);
@@ -3146,4 +3156,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:156}
+var version = {build:157}
