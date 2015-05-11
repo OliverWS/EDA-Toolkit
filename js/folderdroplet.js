@@ -9,7 +9,7 @@ var FolderDroplet = function(id, callback, opts) {
 	that.vsize.height = that.vsize.height || that.vsize.width*(9./16.);
 	that.graphs = [];
 	that.videoFiles = [];
-	that.msg = opts.msg || "<i class='icon-folder-open'></i>  Drop folder here to view";
+	that.msg = opts.msg || "<i class='fa fa-files-o'></i>  Drop files here to view";
 	//<link href="http://vjs.zencdn.net/c/video-js.css" rel="stylesheet">
 	//<script src="http://vjs.zencdn.net/c/video.js"></script>
 	//$(document).append($("<script>").attr("src","http://vjs.zencdn.net/c/video.js"));
