@@ -950,7 +950,7 @@ var Dropzone = function(el,callback,opts) {
 	dropzone.ondrop = function(e) {	
 		e.preventDefault();
 		if(that.allowFolders){
-			var entry = e.dataTransfer.items[0].webkitGetAsEntry();
+			var entry = that.getFirstFile(e);
 			if(entry.isDirectory){
 				if (document.getElementById("foldername")) {
 					document.getElementById("foldername").innerHTML = entry.name ;
@@ -982,7 +982,23 @@ var Dropzone = function(el,callback,opts) {
 
 		}
 	};
-	
+	that.getFiles = function(e) {
+		if(window.safari != undefined){
+			return e.dataTransfer.files;
+		}
+		else{
+			return e.dataTransfer.items;
+		}
+	}
+	that.getFirstFile = function(e) {
+		if(window.safari != undefined){
+			return that.getFiles(e)[0];
+		}
+		else{
+			return that.getFiles(e)[0].webkitGetAsEntry();
+		}
+	}
+
 	that.traverseFileTree = function(item, path) {
 	  path = path || "";
 	  if (item.isFile && item.name[0] != ".") {
@@ -1569,11 +1585,11 @@ var FolderDroplet = function(id, callback, opts) {
 	that.vsize.height = that.vsize.height || that.vsize.width*(9./16.);
 	that.graphs = [];
 	that.videoFiles = [];
-	that.msg = opts.msg || "<i class='icon-folder-open'></i>  Drop folder here to view";
+	that.msg = opts.msg || "<i class='fa fa-files-o'></i>  Drop files here to view";
 	//<link href="http://vjs.zencdn.net/c/video-js.css" rel="stylesheet">
 	//<script src="http://vjs.zencdn.net/c/video.js"></script>
-	$(document).append($("<script>").attr("src","http://vjs.zencdn.net/c/video.js"));
-	$(document).append($("<link>").attr("href","http://vjs.zencdn.net/c/video-js.css").attr("rel","stylesheet"));
+	//$(document).append($("<script>").attr("src","http://vjs.zencdn.net/c/video.js"));
+	//$(document).append($("<link>").attr("href","http://vjs.zencdn.net/c/video-js.css").attr("rel","stylesheet"));
 	
 	that.handleError = function(f) {
 		$(".dropzone").addClass("error");
@@ -1899,6 +1915,7 @@ var Grapher = function(div, opts) {
 	this.channels = this.opts.channel || ["EDA"];
 	this.autoscale = this.opts.autoscale || true;
 	that.headroom = this.opts.headroom || 0.2;
+	that.RANGE_MARKER_HEIGHT = this.opts.rangemarkerheight || 10.0;
 	that.showAcc = false;
 	this.units = {
 		"EDA": "\u03BC" + "S",
@@ -2034,7 +2051,7 @@ var Grapher = function(div, opts) {
 
 		var root = $(that.container);
 		
-		$(that.container).prepend($("<div>").addClass("btn-toolbar").addClass("pull-right").css("margin-bottom",-50).css("margin-right",50).append(
+		$(that.container).prepend($("<div>").addClass("btn-toolbar").css("margin-bottom",-50).css("position","absolute").css("left", that.width-110.0).append(
 			$("<div>").addClass("btn-group").append(
 				$("<button>").attr("class","btn btn-info dropdown-toggle").attr("data-toggle","dropdown").attr("href","#").html("Channels\n<span class='caret'></span>")
 			).append(
@@ -2502,7 +2519,7 @@ var Grapher = function(div, opts) {
 						.addClass("clearButton")
 						.css("display","block")
 						.css("position","absolute")
-						.css("right", 107/2)
+						.css("left", that.width-110.0-10.)						
 						.css("top",bounds.top + scrollY + that.p + 10)
 						.html("<i class='icon-zoom-out'></i> Zoom Out")
 						.on("click", function(e) {
@@ -2596,7 +2613,7 @@ var Grapher = function(div, opts) {
 			var ZOOM_ID = "ZOOM_ID_" + parseInt(Math.random()*1000,10).toString();
 			var ADD_RANGE_ID = "ADD_RANGE_ID_" + parseInt(Math.random()*1000,10).toString();
 			var COMMENT_ID = "COMMENT_ID_" + parseInt(Math.random()*1000,10).toString();
-			var popoverContent = "<input type=\"text\" class=\"form-control\" placeholder=\"Comment\" id=\"COMMENT_ID\"><br /><input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"000\"  class=\"pick-a-color form-control\"><br /><div class=\"btn-group\"><button class='btn btn-default' id='ZOOM_ID'><i class='icon-zoom-in'></i> Zoom</button><button class='btn btn-primary' id='ADD_RANGE_ID'><i class='icon-map-marker'></i> Add Range Marker</button></div>".replace("ZOOM_ID",ZOOM_ID).replace("ADD_RANGE_ID",ADD_RANGE_ID).replace("COMMENT_ID",COMMENT_ID);
+			var popoverContent = "<input type=\"text\" class=\"form-control\" placeholder=\"Comment\" id=\"COMMENT_ID\"><br /><input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"4BAAA9\"  class=\"pick-a-color form-control\"><br /><div class=\"btn-group\"><button class='btn btn-default' id='ZOOM_ID'><i class='icon-zoom-in'></i> Zoom</button><button class='btn btn-primary' id='ADD_RANGE_ID'><i class='icon-map-marker'></i> Add Range Marker</button></div>".replace("ZOOM_ID",ZOOM_ID).replace("ADD_RANGE_ID",ADD_RANGE_ID).replace(/COMMENT_ID/g,COMMENT_ID);
 			
 			$(that.graph).find("rect.zoomrect").popover({
 				html: true,
@@ -2617,8 +2634,8 @@ var Grapher = function(div, opts) {
 			$("button#"+ADD_RANGE_ID).on("click", function() {
 				$(that.graph).find("rect.zoomrect").popover('destroy');
 				that.datasourceContainer.select("rect.zoomrect").remove();
-				var comment = $("input#" + COMMENT_ID).attr("value");
-				var color =  $("input#" + COMMENT_ID + "_COLOR").attr("value");
+				var comment = $("input#" + COMMENT_ID).val();
+				var color =  $("input#" + COMMENT_ID + "_COLOR").val();
 				that.addRangeMarker(start,end, comment,color);
 				
 			});
@@ -2665,6 +2682,11 @@ var Grapher = function(div, opts) {
 		var popoverContent = "<button class='btn btn-danger pull-left' id='REMOVE_ID'>Delete</button><button class='btn btn-default pull-right' id='DONE_ID'>Save</button>".replace("DONE_ID",DONE_ID).replace("REMOVE_ID",REMOVE_ID);
 		d3.select(rect).on("mousedown", null);
 		d3.select(rect).on("click", null);
+		d3.select(rect).transition()
+			.attr("y", -that.RANGE_MARKER_HEIGHT)
+			.style("opacity",0.5)
+			.attr("height", that.h+that.RANGE_MARKER_HEIGHT);
+
 		$(rect).attr("title",null);
 		$(rect).attr("data-original-title",null);
 		$(rect).popover({
@@ -2680,7 +2702,7 @@ var Grapher = function(div, opts) {
 		var leftHandle = that.datasourceContainer.append("svg:g")
 			.attr("class", "rangemarker edit");
 		leftHandle.append("svg:line")
-				.style("stroke", "black")
+				.style("stroke", "red")
 				.style("stroke-width", "4")
 				.style("cursor","pointer")
 				.attr("y1", 0)
@@ -2691,7 +2713,8 @@ var Grapher = function(div, opts) {
 			.attr("cx", x1)
 			.attr("cy", 0)
 			.attr("r", 5)
-			.style("stroke", "black")
+			.style("stroke", "red")
+			.style("fill", "red")
 			.style("stroke-width", "2")
 			.style("cursor","pointer");
 		leftHandle.on("mousedown", function() {
@@ -2715,7 +2738,7 @@ var Grapher = function(div, opts) {
 		var rightHandle = that.datasourceContainer.append("svg:g")
 			.attr("class", "rangemarker edit");
 		rightHandle.append("svg:line")
-				.style("stroke", "black")
+				.style("stroke", "red")
 				.style("stroke-width", "4")
 				.style("cursor","pointer")
 				.attr("y1", 0)
@@ -2726,7 +2749,8 @@ var Grapher = function(div, opts) {
 			.attr("cx", x2)
 			.attr("cy", that.h)
 			.attr("r", 5)
-			.style("stroke", "black")
+			.style("stroke", "red")
+			.style("fill", "red")
 			.style("stroke-width", "2")
 			.style("cursor","pointer");
 		
@@ -2752,14 +2776,14 @@ var Grapher = function(div, opts) {
 			$(rect).popover('destroy');
 			leftHandle.remove();
 			rightHandle.remove();
-			that.datasourceContainer.on("mousedown",that.mousedown);
+			that.datasourceContainer.on("mousedown",that.mousedown,false);
 			var xmin = d3.select(rect).attr("x")*1.0;
 			var xmax = d3.select(rect).attr("width")*1.0+xmin;
 			var start = that.datasource.timeForOffset( int( that.datasource.x( xmin ) ) );
 			var end = that.datasource.timeForOffset( int( that.datasource.x( xmax ) ) );
 			var idx = d3.select(rect).attr("data-index")*1;
 			
-			that.datasource.rangeMarkers[idx] = {"startTime":start,"endTime":end, "comment":$("input#" + COMMENT_ID).attr("value"), "color":$("input#" + COMMENT_ID+"_COLOR").attr("value")};
+			that.datasource.rangeMarkers[idx] = {"startTime":start,"endTime":end, "comment":$("input#" + COMMENT_ID).attr("value"), "color":(that.datasource.rangeMarkers[idx].color)};
 			that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
 			that.updateCache();
 		});	
@@ -2767,7 +2791,7 @@ var Grapher = function(div, opts) {
 			$(rect).popover('destroy');
 			leftHandle.remove();
 			rightHandle.remove();
-			that.datasourceContainer.on("mousedown",that.mousedown);
+			that.datasourceContainer.on("mousedown",that.mousedown,false);
 			var idx = d3.select(rect).attr("data-index")*1;
 			
 			that.datasource.rangeMarkers.splice(idx,1);
@@ -2790,13 +2814,19 @@ var Grapher = function(div, opts) {
 				var markerRect = container.append("svg:rect")
 					.attr("class","rangemarker")
 					.attr("data-index",i)
+					.attr("title", marker.comment)
 					.attr("x", that.datasource.x.invert(that.datasource.offsetForTime(marker.startTime) ))
 					.style("fill",("#" + marker.color))
-					.style("opacity",0.5)
-					.attr("y", 0)
+					.style("opacity",0.85)
+					.attr("y", -that.RANGE_MARKER_HEIGHT)
 					.attr("width", that.datasource.x.invert(that.datasource.offsetForTime(marker.endTime)) - that.datasource.x.invert(that.datasource.offsetForTime(marker.startTime) ))
-					.attr("height", that.h)
-					.on("click", that.editRangeMarker);
+					.attr("height", that.RANGE_MARKER_HEIGHT)
+					.on("mousedown", that.editRangeMarker);
+					
+				$("rect.rangemarker").tooltip({
+					    "container": "body",
+					    html: true,
+					    "placement": "top"});
 				console.log(markerRect);
 			}
 		}
@@ -3105,4 +3135,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:150}
+var version = {build:155}

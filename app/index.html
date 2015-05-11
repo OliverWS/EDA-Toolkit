@@ -5,8 +5,9 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<!-- Required Libraries -->
 		<script src="http://d3js.org/d3.v3.min.js"></script>	
-		<script src="http://code.jquery.com/jquery-1.8.0.min.js" type="text/javascript"></script>
-		<script src="http://codeorigin.jquery.com/ui/1.10.3/jquery-ui.min.js" type="text/javascript"></script>
+		<script src="//code.jquery.com/jquery-1.9.1.min.js"></script>
+		<!-- <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script> -->
+		<script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js" type="text/javascript"></script>
 		<script src="js/spin.min.js" type="text/javascript"></script>
 		<script src="http://momentjs.com/downloads/moment.min.js" type="text/javascript"></script>
 		
@@ -44,35 +45,35 @@
 	
 		<div class="container-fluid">
 			<div class="header">
-				<h1>EDA Toolkit<small id="version"></small><span class="pull-right"><small></small><span id="foldername"></span></span></h1>
+				<h1>CBS Toolkit<small id="version"></small><span class="pull-right"><small></small><span id="foldername"></span></span></h1>
 			</div>
 			<hr />
 			
 			<div class="row-fluid">
 				<div class="col-12 view-container">	
 						<div class="btn-group-vertical pull-right hide toolbar-buttons toolbar" data-toggle="buttons">
-						  <button id="refresh" class="btn btn-primary" title="Reload"><i class="icon-refresh"></i></button>
-						  <button id="export" class="btn btn-primary" title="Export"><i class="icon-list"></i></button>
+						  <button id="refresh" class="btn btn-primary" title="Reload"><i class="fa fa-refresh"></i></button>
+						  <button id="export" class="btn btn-primary" title="Export"><i class="fa fa-list"></i></button>
 						  <button class="btn btn-primary" id="add" title="Add Graph" data-toggle="reset">
-						  	<i class="icon-plus"></i><span class="hide">Add Graph</span>
+						  	<i class="fa fa-plus"></i><span class="hide">Add Graph</span>
 						  </button>
 						  <label class="btn btn-primary" id="remove" title="Toggle Edit Mode">
-						  	 <input type="checkbox" checked><i class="icon-trash"></i><span class="hide">Remove Graph(s)</span>
+						  	 <input type="checkbox" checked><i class="fa fa-trash"></i><span class="hide">Remove Graph(s)</span>
 						  </label>
 						  
 						  <label class="btn btn-primary active" id="sync" title="Toggle Sync">
-						    <input type="checkbox" checked><i class="icon-lock"></i><span class="hide"> Sync Graphs</span>
+						    <input type="checkbox" checked><i class="fa fa-lock"></i><span class="hide"> Sync Graphs</span>
 						  </label>
 						  <label class="btn btn-primary" id="showACC"  title="Show/Hide Accelerometer Data">
-						    <input type="checkbox"><i class="icon-eye-open"></i> <span class="hide">Show ACC</span>
+						    <input type="checkbox"><i class="fa fa-eye"></i> <span class="hide">Show ACC</span>
 						  </label>
 						  <label class="btn btn-primary active" id="showVideo"  title="Show/Hide Video">
-						    <input type="checkbox" checked><i class="icon-film"></i> <span class="hide"></span>
+						    <input type="checkbox" checked><i class="fa fa-film"></i> <span class="hide"></span>
 						  </label>
 						  
 						  <!-- Single button -->
 						    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-						   <i class="icon-fullscreen"></i> <span class="hide">  Graph Size</span> <span class="caret"></span>
+						   <i class="fa fa-expand"></i> <span class="hide">  Graph Size</span> <span class="caret"></span>
 						    </button>
 						    <ul id="graphSize" class="dropdown-menu" role="menu">
 						      <li><a class="selected-channel" href="#" size="300">Small</a></li>
@@ -129,11 +130,11 @@
 				setTimeout(function() {
 					var show = $("#showACC").hasClass("active");
 					if (show) {
-						$("#showACC").find("i").attr("class", "icon-eye-close");
+						$("#showACC").find("i").attr("class", "fa fa-eye-slash");
 						$("#showACC span").html($("#showACC span").html().replace("Show","Hide"));
 					}
 					else {
-						$("#showACC").find("i").attr("class", "icon-eye-open");
+						$("#showACC").find("i").attr("class", "fa fa-eye");
 						$("#showACC span").html($("#showACC span").html().replace("Hide","Show"));
 					}
 				}, 50);
@@ -155,10 +156,10 @@
 			$("#sync input").on("change", function() {
 					var show =  ($("#sync input")[0].checked == true);
 					if (show) {
-						$("#sync").find("i").attr("class", "icon-lock");
+						$("#sync").find("i").attr("class", "fa fa-lock");
 					}
 					else {
-						$("#sync").find("i").attr("class", "icon-unlock");
+						$("#sync").find("i").attr("class", "fa fa-unlock");
 					}
 			
 			});
@@ -166,7 +167,7 @@
 			$("#remove input").on("change", function() {
 				var isActive =  ($("#remove input")[0].checked == true);
 				if (isActive) {
-					$(".handle i").attr("class","icon-trash delete-mode");
+					$(".handle i").attr("class","fa fa-trash delete-mode");
 					$(".handle").on("click", function() {
 						$(this).parent().animate({"margin-left":-1*$(document).width()},400, function() {
 							$(this).animate({"height":0},200,function() {
@@ -177,7 +178,7 @@
 					});
 				}
 				else {
-					$(".handle i").attr("class","icon-reorder");
+					$(".handle i").attr("class","fa fa-reorder");
 					$(".handle").off("click");
 					$(".channel-select-dropdown").sortable({items: "li:has(.selected-channel)",cancel:".ignore"});
 					  $( "#viewer" ).sortable({
@@ -288,7 +289,7 @@
 					graphers = graphs;
 					$("div.edaGraph").each(function(i,el) {
 						$(el).find(".handle").remove();
-						$(el).prepend('<div class="handle"><i class="icon-reorder"></i></div>');						
+						$(el).prepend('<div class="handle"><i class="fa fa-reorder"></i></div>');						
 					});
 					$(".channel-select-dropdown").sortable({items: "li:has(.selected-channel)",cancel:".ignore"});
 					  $( "#viewer" ).sortable({
