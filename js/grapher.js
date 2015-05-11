@@ -619,7 +619,7 @@ var Grapher = function(div, opts) {
 						.addClass("clearButton")
 						.css("display","block")
 						.css("position","absolute")
-						.css("left", that.width-110.0-10.)						
+						.css("left", that.width-110.0-10.0)						
 						.css("top",bounds.top + scrollY + that.p + 10)
 						.html("<i class='icon-zoom-out'></i> Zoom Out")
 						.on("click", function(e) {
@@ -775,11 +775,16 @@ var Grapher = function(div, opts) {
 		var rect = this;
 		console.log("Opening edit range marker dialogue");
 		console.log(rect);
+		var idx = d3.select(rect).attr("data-index")*1;
+
 		that.datasourceContainer.on("mousedown",null);
 		var DONE_ID = "DONE_ID_" + parseInt(Math.random()*1000,10).toString();
 		var COMMENT_ID = "COMMENT_ID_" + parseInt(Math.random()*1000,10).toString();
 		var REMOVE_ID = "REMOVE_ID_" + parseInt(Math.random()*1000,10).toString();
-		var popoverContent = "<button class='btn btn-danger pull-left' id='REMOVE_ID'>Delete</button><button class='btn btn-default pull-right' id='DONE_ID'>Save</button>".replace("DONE_ID",DONE_ID).replace("REMOVE_ID",REMOVE_ID);
+		var popoverContent = "<input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"CURRENT_COLOR\"  class=\"pick-a-color form-control\"><br /><button class='btn btn-danger pull-left' id='REMOVE_ID'>Delete</button><button class='btn btn-default pull-right' id='DONE_ID'>Save</button>".replace("DONE_ID",DONE_ID).replace("REMOVE_ID",REMOVE_ID).replace(/COMMENT_ID/g,COMMENT_ID).replace("CURRENT_COLOR",that.datasource.rangeMarkers[idx].color);
+
+
+
 		d3.select(rect).on("mousedown", null);
 		d3.select(rect).on("click", null);
 		d3.select(rect).transition()
@@ -870,7 +875,6 @@ var Grapher = function(div, opts) {
 					});
 				});
 		$(rect).popover('show');
-		var idx = d3.select(rect).attr("data-index")*1;
 		$("input#" + COMMENT_ID).attr("value",that.datasource.rangeMarkers[idx].comment);
 		$("button#"+DONE_ID).on("click", function() {
 			$(rect).popover('destroy');
@@ -883,7 +887,7 @@ var Grapher = function(div, opts) {
 			var end = that.datasource.timeForOffset( int( that.datasource.x( xmax ) ) );
 			var idx = d3.select(rect).attr("data-index")*1;
 			
-			that.datasource.rangeMarkers[idx] = {"startTime":start,"endTime":end, "comment":$("input#" + COMMENT_ID).attr("value"), "color":(that.datasource.rangeMarkers[idx].color)};
+			that.datasource.rangeMarkers[idx] = {"startTime":start,"endTime":end, "comment":$("input#" + COMMENT_ID).val(), "color":$("input#" + COMMENT_ID+"_COLOR").val() || (that.datasource.rangeMarkers[idx].color)};
 			that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
 			that.updateCache();
 		});	
@@ -898,6 +902,13 @@ var Grapher = function(div, opts) {
 			that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
 			that.updateCache();
 		});	
+		try {
+			$(".pick-a-color").pickAColor();
+		}
+		catch (error) {
+			console.log(error);
+		}
+
 		
 		
 	
