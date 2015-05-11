@@ -368,6 +368,8 @@ var qLogFile =  function () {
 		else {
 			that.callback = that.saveFileAs;
 		}
-		that.worker.postMessage({cmd:"export", data:{data:that.data, metadata:that.metadata, useBlob: false} });
+		var data = that.data;
+		var metadata = that.metadata;
+		that.worker.postMessage({cmd:"export", data:{data:data, metadata:metadata, useBlob: false} });
 	}
 };

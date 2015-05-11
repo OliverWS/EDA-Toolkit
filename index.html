@@ -70,8 +70,8 @@
 						  <label class="btn btn-primary active" id="showVideo"  title="Show/Hide Video">
 						    <input type="checkbox" checked><i class="fa fa-film"></i> <span class="hide"></span>
 						  </label>
-						  
-						  <!-- Single button -->
+<!-- 						  <button id="download" class="btn btn-primary" title="Download"><i class="fa fa-download"></i></button>
+ -->						  <!-- Single button -->
 						    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
 						   <i class="fa fa-expand"></i> <span class="hide">  Graph Size</span> <span class="caret"></span>
 						    </button>
@@ -281,7 +281,22 @@
 					
 				});
 			});
-			
+			$("#download").on("click",function() {
+				for (var i = 0; i < graphers.length; i++) {
+					var g = graphers[i];
+					var ef = g.datasource;
+					ef.exportToCSV(function (csv) {
+						var pom = document.createElement('a');
+						pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
+						pom.setAttribute('download', ef.filename+".csv");
+						pom.click();
+
+					});					
+				}
+
+			});
+
+
 			
 			setupHandlers = function(div) {
 				drop = new FolderDroplet(div, function(graphs) {
