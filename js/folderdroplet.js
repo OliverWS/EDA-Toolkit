@@ -12,8 +12,8 @@ var FolderDroplet = function(id, callback, opts) {
 	that.msg = opts.msg || "<i class='icon-folder-open'></i>  Drop folder here to view";
 	//<link href="http://vjs.zencdn.net/c/video-js.css" rel="stylesheet">
 	//<script src="http://vjs.zencdn.net/c/video.js"></script>
-	$(document).append($("<script>").attr("src","http://vjs.zencdn.net/c/video.js"));
-	$(document).append($("<link>").attr("href","http://vjs.zencdn.net/c/video-js.css").attr("rel","stylesheet"));
+	//$(document).append($("<script>").attr("src","http://vjs.zencdn.net/c/video.js"));
+	//$(document).append($("<link>").attr("href","http://vjs.zencdn.net/c/video-js.css").attr("rel","stylesheet"));
 	
 	that.handleError = function(f) {
 		$(".dropzone").addClass("error");

@@ -712,7 +712,7 @@ var Grapher = function(div, opts) {
 			var ZOOM_ID = "ZOOM_ID_" + parseInt(Math.random()*1000,10).toString();
 			var ADD_RANGE_ID = "ADD_RANGE_ID_" + parseInt(Math.random()*1000,10).toString();
 			var COMMENT_ID = "COMMENT_ID_" + parseInt(Math.random()*1000,10).toString();
-			var popoverContent = "<input type=\"text\" class=\"form-control\" placeholder=\"Comment\" id=\"COMMENT_ID\"><br /><input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"000\"  class=\"pick-a-color form-control\"><br /><div class=\"btn-group\"><button class='btn btn-default' id='ZOOM_ID'><i class='icon-zoom-in'></i> Zoom</button><button class='btn btn-primary' id='ADD_RANGE_ID'><i class='icon-map-marker'></i> Add Range Marker</button></div>".replace("ZOOM_ID",ZOOM_ID).replace("ADD_RANGE_ID",ADD_RANGE_ID).replace("COMMENT_ID",COMMENT_ID);
+			var popoverContent = "<input type=\"text\" class=\"form-control\" placeholder=\"Comment\" id=\"COMMENT_ID\"><br /><input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"000\"  class=\"pick-a-color form-control\"><br /><div class=\"btn-group\"><button class='btn btn-default' id='ZOOM_ID'><i class='icon-zoom-in'></i> Zoom</button><button class='btn btn-primary' id='ADD_RANGE_ID'><i class='icon-map-marker'></i> Add Range Marker</button></div>".replace("ZOOM_ID",ZOOM_ID).replace("ADD_RANGE_ID",ADD_RANGE_ID).replace(/COMMENT_ID/g,COMMENT_ID);
 			
 			$(that.graph).find("rect.zoomrect").popover({
 				html: true,
@@ -733,8 +733,8 @@ var Grapher = function(div, opts) {
 			$("button#"+ADD_RANGE_ID).on("click", function() {
 				$(that.graph).find("rect.zoomrect").popover('destroy');
 				that.datasourceContainer.select("rect.zoomrect").remove();
-				var comment = $("input#" + COMMENT_ID).attr("value");
-				var color =  $("input#" + COMMENT_ID + "_COLOR").attr("value");
+				var comment = $("input#" + COMMENT_ID).val();
+				var color =  $("input#" + COMMENT_ID + "_COLOR").val();
 				that.addRangeMarker(start,end, comment,color);
 				
 			});
@@ -796,7 +796,7 @@ var Grapher = function(div, opts) {
 		var leftHandle = that.datasourceContainer.append("svg:g")
 			.attr("class", "rangemarker edit");
 		leftHandle.append("svg:line")
-				.style("stroke", "black")
+				.style("stroke", "red")
 				.style("stroke-width", "4")
 				.style("cursor","pointer")
 				.attr("y1", 0)
@@ -807,7 +807,7 @@ var Grapher = function(div, opts) {
 			.attr("cx", x1)
 			.attr("cy", 0)
 			.attr("r", 5)
-			.style("stroke", "black")
+			.style("stroke", "red")
 			.style("stroke-width", "2")
 			.style("cursor","pointer");
 		leftHandle.on("mousedown", function() {
@@ -831,7 +831,7 @@ var Grapher = function(div, opts) {
 		var rightHandle = that.datasourceContainer.append("svg:g")
 			.attr("class", "rangemarker edit");
 		rightHandle.append("svg:line")
-				.style("stroke", "black")
+				.style("stroke", "red")
 				.style("stroke-width", "4")
 				.style("cursor","pointer")
 				.attr("y1", 0)
@@ -842,7 +842,7 @@ var Grapher = function(div, opts) {
 			.attr("cx", x2)
 			.attr("cy", that.h)
 			.attr("r", 5)
-			.style("stroke", "black")
+			.style("stroke", "red")
 			.style("stroke-width", "2")
 			.style("cursor","pointer");
 		
@@ -875,7 +875,7 @@ var Grapher = function(div, opts) {
 			var end = that.datasource.timeForOffset( int( that.datasource.x( xmax ) ) );
 			var idx = d3.select(rect).attr("data-index")*1;
 			
-			that.datasource.rangeMarkers[idx] = {"startTime":start,"endTime":end, "comment":$("input#" + COMMENT_ID).attr("value"), "color":$("input#" + COMMENT_ID+"_COLOR").attr("value")};
+			that.datasource.rangeMarkers[idx] = {"startTime":start,"endTime":end, "comment":$("input#" + COMMENT_ID).attr("value"), "color":(that.datasource.rangeMarkers[idx].color)};
 			that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
 			that.updateCache();
 		});	
