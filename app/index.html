@@ -13,7 +13,8 @@
 		
 		<!-- Optional Libraries for Dropbox Support -->
 		<script type="text/javascript" src="https://www.dropbox.com/static/api/1/dropins.js" id="dropboxjs" data-app-key="jdoj9iq6nz2cjy1"></script>
-		
+		    <script src="https://www.dropbox.com/static/api/dropbox-datastores-1.0-latest.js"></script>
+
 		<!-- Video JS -->
 		<link href="http://vjs.zencdn.net/c/video-js.css" rel="stylesheet">
 		<script src="http://vjs.zencdn.net/c/video.js"></script>
@@ -286,10 +287,9 @@
 					var g = graphers[i];
 					var ef = g.datasource;
 					ef.exportToCSV(function (csv) {
-						var pom = document.createElement('a');
-						pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
-						pom.setAttribute('download', ef.filename+".csv");
-						pom.click();
+							DBClient.writeFile(ef.filename+".csv", csv, function () {
+							    alert(ef.filename+".csv" + ' was saved to your Dropbox!');
+							});
 
 					});					
 				}
