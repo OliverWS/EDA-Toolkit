@@ -1270,6 +1270,16 @@ var qLogFile =  function () {
 			var cache = JSON.parse(localStorage[that.hash()]);
 			that.rangeMarkers = cache.rangeMarkers;
 		}
+		else {
+			that.rangeMarkers = [];
+		}
+		if (sessionStorage["RANGE_MARKERS"] != undefined) {
+			var evts = JSON.parse(sessionStorage["RANGE_MARKERS"]);
+			for (var i = 0; i < evts.length; i++) {
+				that.rangeMarkers.push(evts[i]);
+			};
+
+		}
 		if(this.callback != undefined){
 			this.callback.call(that);
 		}
@@ -1655,6 +1665,23 @@ var FolderDroplet = function(id, callback, opts) {
 		}
 	
 	};
+
+	that.handleEvents = function(file, type) {
+		console.log("Loading file...");
+			var reader = new FileReader();
+			
+			reader.onload = function (event) {
+			  console.log(event.target);
+			  var str = ""+event.target.result;
+			  console.log("Loading range markers:...\n" + str);
+			  sessionStorage["RANGE_MARKERS"] = str;
+			  return false;
+			};
+			
+			reader.readAsBinaryString(file);
+	
+	};
+
 	
 			
 	that.setupHandlers = function(vplayer) {
@@ -1827,6 +1854,9 @@ var FolderDroplet = function(id, callback, opts) {
 			  		break;
 				case "bookmark":
 					that.bookmark = file.name.split(".")[0];
+					break;
+				case "events":
+					that.handleEvents(file,type);
 					break;
 
 			  	default:
@@ -3156,4 +3186,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:158}
+var version = {build:159}
