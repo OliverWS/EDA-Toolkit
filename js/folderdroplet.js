@@ -170,7 +170,7 @@ var FolderDroplet = function(id, callback, opts) {
 		}
 		else {
 			var metadata = file;
-			var vid = window.webkitURL.createObjectURL(file);
+			var vid = window.URL.createObjectURL(file);
 			
 			var name = metadata.name;
 			var type = metadata.type;
