@@ -100,7 +100,8 @@
 			        
 			      </div>
 			      <div class="modal-footer">
-      			        <button type="button" class="btn btn-primary" id="download_regions">Download</button>
+      			        <button type="button" class="btn btn-primary" id="download_regions">Download CSV</button>
+      			        <button type="button" class="btn btn-primary" id="download_events">Download Events</button>
       			        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 			      </div>
 			    </div><!-- /.modal-content -->
@@ -276,11 +277,19 @@
 				$("#modal_template").modal("show");
 				$("#download_regions").on("click", function() {
 					var pom = document.createElement('a');
-					pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
+					pom.setAttribute('href', 'data:attachment/csv;charset=utf-8,' + encodeURIComponent(csv));
 					pom.setAttribute('download', "SelectedRegions.csv");
 					pom.click();
 					
 				});
+				$("#download_events").on("click", function() {
+					var pom = document.createElement('a');
+					pom.setAttribute('href', 'data:attachement/text;charset=utf-8,' + encodeURIComponent(JSON.stringify(ranges)));
+					pom.setAttribute('download', "RangeMarkers.events");
+					pom.click();
+					
+				});
+
 			});
 			$("#download").on("click",function() {
 				for (var i = 0; i < graphers.length; i++) {

@@ -117,6 +117,16 @@ var qLogFile =  function () {
 			var cache = JSON.parse(localStorage[that.hash()]);
 			that.rangeMarkers = cache.rangeMarkers;
 		}
+		else {
+			that.rangeMarkers = [];
+		}
+		if (sessionStorage["RANGE_MARKERS"] != undefined) {
+			var evts = JSON.parse(sessionStorage["RANGE_MARKERS"]);
+			for (var i = 0; i < evts.length; i++) {
+				that.rangeMarkers.push(evts[i]);
+			};
+
+		}
 		if(this.callback != undefined){
 			this.callback.call(that);
 		}
