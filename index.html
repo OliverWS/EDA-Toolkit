@@ -308,6 +308,7 @@
 
 			
 			setupHandlers = function(div) {
+				sessionStorage.clear();
 				drop = new FolderDroplet(div, function(graphs) {
 					console.log(graphers);
 					graphers = graphs;
