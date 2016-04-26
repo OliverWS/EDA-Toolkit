@@ -1,6 +1,6 @@
 /**
 * EDA Toolkit
-* Copyright 2013 Oliver Wilder-Smith 
+* Copyright 2016 Oliver Wilder-Smith 
 * http://www.apache.org/licenses/LICENSE-2.0
 */
 var e = Math.E;
