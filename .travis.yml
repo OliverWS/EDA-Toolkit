@@ -1,9 +1,9 @@
-before_script: 
-  - npm install -g npm
 language: node_js
 after_success: ./update-gh-pages.sh
 node_js: 
-- "0.10"
+- "0.12"
 env: 
   global: 
     secure: cVED919h50sWrNVxm3HKQr3UEEht3gt0hCQTVvKb9npOTec+PSErcQ1DuduiwMvf6kk6K4L/ZeH3v/WLtduQl23JYNA0tTOmIXGvdfFt1qEl94xt//cwb0jj5VMmV0hikzmbdNqTJoLaorq+cj9/GOw+K/Y4F4fEmW6eDcaRQX0=
+before_script: 
+  - npm install grunt-cli -g
