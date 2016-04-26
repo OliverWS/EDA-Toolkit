@@ -6,7 +6,7 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
         banner: '/**\n' +
                 '* EDA Toolkit\n' +
-                '* Copyright 2013 Oliver Wilder-Smith \n' +
+                '* Copyright 2016 Oliver Wilder-Smith \n' +
                 '* <%= _.pluck(pkg.licenses, "url").join(", ") %>\n' +
                 '*/\n',
         jqueryCheck: 'if (!jQuery) { throw new Error(\"EDA Toolkit requires jQuery\") }\n\n',
