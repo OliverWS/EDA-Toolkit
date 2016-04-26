@@ -8,7 +8,7 @@ html {
 
 @media print {
   .toolbar-buttons, .btn-toolbar, .clearButton {
-     display: none;
+     display: none !important;
    }
 }
 
