@@ -6,6 +6,12 @@ html {
 	user-select: none;
 }
 
+@media print {
+  .toolbar-buttons, .btn-toolbar, .clearButton {
+     display: none;
+   }
+}
+
 .delete-mode {
 	color: #d9534f;
 	background: white;
