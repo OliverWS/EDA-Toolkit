@@ -10,6 +10,11 @@ html {
   .toolbar-buttons, .btn-toolbar, .clearButton {
      display: none !important;
    }
+   .edaGraph {
+   	margin-top: 25px !important;
+
+   }
+
 }
 
 .delete-mode {
