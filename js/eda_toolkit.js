@@ -339,7 +339,7 @@ var qLogFile =  function () {
 		var start = this.offsetForTime(startTime);
 		var stop = this.offsetForTime(endTime);
 
-		if(start != NaN && end != NaN) {
+		if(start != NaN && stop != NaN) {
 			if(this.data.hasOwnProperty(channel)) {
 				return this.data[channel].slice(start, stop);
 			}
@@ -350,9 +350,19 @@ var qLogFile =  function () {
 
 	};
 
-	this.saveFileAs = function(file) {
+	this.saveFileAs = function(file, filename) {
+		if(filename) {
+
+		}
+		else {
+			filename = "SelectedRegion.csv"
+		}
 		var b = new Blob([file], {type: "text/plain;charset=UTF-8"});
-		saveAs(b, that.filename);
+		var pom = document.createElement('a');
+		pom.setAttribute('href', 'data:attachment/csv;charset=utf-8,' + encodeURIComponent(file));
+		pom.setAttribute('download', filename);
+		pom.click();
+
 	};
 
 	this.savePDF = function() {
@@ -367,6 +377,33 @@ var qLogFile =  function () {
 
 			});
 		});
+
+	}
+
+	this.exportCropped = function(startTime, endTime, filename, callback) {
+
+
+		if (callback) {
+			that.callback = callback;
+		}
+		else {
+			if(filename) {
+				that.callback = function(file){that.saveFileAs(file, filename)};
+			}
+			else {
+				that.callback = that.saveFileAs(file, filename);
+			}
+		}
+
+
+		var data = Object.assign({}, that.data);
+		var metadata = Object.assign({}, that.metadata);
+		for (var i = that.channels.length - 1; i >= 0; i--) {
+			data[that.channels[i]] = this._getDataForTimeRange(that.channels[i], startTime, endTime);
+		}
+		metadata["Start Time"] = startTime;
+
+		that.worker.postMessage({cmd:"export", data:{data:data, metadata:metadata, useBlob: false} });
 
 	}
 

@@ -7,13 +7,14 @@ html {
 }
 
 @media print {
-  .toolbar-buttons, .btn-toolbar, .clearButton {
+  .toolbar-buttons, .btn-toolbar, .clearButton, div.handle  {
      display: none !important;
    }
    .edaGraph {
-   	margin-top: 25px !important;
+   	margin-top: 10px !important;
 
    }
+
 
 }
 

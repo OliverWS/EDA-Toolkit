@@ -147,7 +147,16 @@ function unpackUnsigned(data) {
 
 Number.prototype.pad = function(padding) {
 	var s = "" + this;
-	var padding_needed = (s.length - padding);
+	var padding_needed = (padding - s.length);
+	for (var i = 0; i < padding_needed; i++) {
+		s = '0' + s;
+	}	
+	return s;
+};
+
+String.prototype.pad = function(padding) {
+	var s = "" + this;
+	var padding_needed = (padding - s.length);
 	for (var i = 0; i < padding_needed; i++) {
 		s = '0' + s;
 	}	
@@ -155,13 +164,14 @@ Number.prototype.pad = function(padding) {
 };
 
 
+
 Date.prototype.toQFormat = function() {
 	var output = "";
-	output += this.getFullYear() + "-" + (this.getMonth()+1) + "-" + this.getDate();
+	output += this.getFullYear() + "-" + (this.getMonth()+1).pad(2) + "-" + this.getDate().pad(2);
 	output += " ";
 	output += this.getHours().pad(2) + ":" + this.getMinutes().pad(2) + ":" + this.getSeconds().pad(2);
 	output += " ";
-	output += "Offset:" + ( (this.getTimezoneOffset() > 0) ? "+" + this.getTimezoneOffset() : this.getTimezoneOffset() );
+	output += "Offset:" + ( (this.getTimezoneOffset() > 0) ? "+" + (this.getTimezoneOffset()/60).pad(2) : (this.getTimezoneOffset()/60).pad(2) );
 	return output;
 };
 

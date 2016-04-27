@@ -788,7 +788,9 @@ var Grapher = function(div, opts) {
 		var DONE_ID = "DONE_ID_" + parseInt(Math.random()*1000,10).toString();
 		var COMMENT_ID = "COMMENT_ID_" + parseInt(Math.random()*1000,10).toString();
 		var REMOVE_ID = "REMOVE_ID_" + parseInt(Math.random()*1000,10).toString();
-		var popoverContent = "<input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"CURRENT_COLOR\"  class=\"pick-a-color form-control\"><br /><button class='btn btn-danger pull-left' id='REMOVE_ID'>Delete</button><button class='btn btn-default pull-right' id='DONE_ID'>Save</button>".replace("DONE_ID",DONE_ID).replace("REMOVE_ID",REMOVE_ID).replace(/COMMENT_ID/g,COMMENT_ID).replace("CURRENT_COLOR",that.datasource.rangeMarkers[idx].color);
+		var EXPORT_ID = "EXPORT_ID_" + parseInt(Math.random()*1000,10).toString();
+
+		var popoverContent = "<input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"CURRENT_COLOR\"  class=\"pick-a-color form-control\"><br /><button class='btn btn-danger pull-left' id='REMOVE_ID'>Delete</button><button class='btn btn-info pull-right' id='EXPORT_ID'>Export</button><button class='btn btn-default pull-right' id='DONE_ID'>Save</button>".replace("DONE_ID",DONE_ID).replace("REMOVE_ID",REMOVE_ID).replace(/COMMENT_ID/g,COMMENT_ID).replace("CURRENT_COLOR",that.datasource.rangeMarkers[idx].color).replace("EXPORT_ID",EXPORT_ID);
 
 
 
@@ -910,6 +912,21 @@ var Grapher = function(div, opts) {
 			that.updateCache();
 			that.isEditing = false;
 		});	
+		$("button#"+EXPORT_ID).on("click", function() {
+			var xmin = d3.select(rect).attr("x")*1.0;
+			var xmax = d3.select(rect).attr("width")*1.0+xmin;
+			var start = that.datasource.timeForOffset( int( that.datasource.x( xmin ) ) );
+			var end = that.datasource.timeForOffset( int( that.datasource.x( xmax ) ) );
+			
+			var filename = that.datasource.filename + "_" + $("input#" + COMMENT_ID).val() + ".csv"
+			console.log("Exporting data from  " + start.toTimeString() + " to " + end.toTimeString() + " as " + filename)
+			
+			that.datasource.exportCropped(start, end, filename)
+			$(this).html("Exporting...").attr("disabled","disabled")
+			setTimeout(function(){ $("button#"+EXPORT_ID).html("Export").attr("disabled",null) }, 3000);
+
+		});	
+
 		try {
 			$("input#" + COMMENT_ID+"_COLOR").pickAColor();
 		}
