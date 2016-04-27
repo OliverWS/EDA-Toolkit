@@ -152,7 +152,16 @@ function unpackUnsigned(data) {
 
 Number.prototype.pad = function(padding) {
 	var s = "" + this;
-	var padding_needed = (s.length - padding);
+	var padding_needed = (padding - s.length);
+	for (var i = 0; i < padding_needed; i++) {
+		s = '0' + s;
+	}	
+	return s;
+};
+
+String.prototype.pad = function(padding) {
+	var s = "" + this;
+	var padding_needed = (padding - s.length);
 	for (var i = 0; i < padding_needed; i++) {
 		s = '0' + s;
 	}	
@@ -160,13 +169,14 @@ Number.prototype.pad = function(padding) {
 };
 
 
+
 Date.prototype.toQFormat = function() {
 	var output = "";
-	output += this.getFullYear() + "-" + (this.getMonth()+1) + "-" + this.getDate();
+	output += this.getFullYear() + "-" + (this.getMonth()+1).pad(2) + "-" + this.getDate().pad(2);
 	output += " ";
 	output += this.getHours().pad(2) + ":" + this.getMinutes().pad(2) + ":" + this.getSeconds().pad(2);
 	output += " ";
-	output += "Offset:" + ( (this.getTimezoneOffset() > 0) ? "+" + this.getTimezoneOffset() : this.getTimezoneOffset() );
+	output += "Offset:" + ( (this.getTimezoneOffset() > 0) ? "+" + (this.getTimezoneOffset()/60).pad(2) : (this.getTimezoneOffset()/60).pad(2) );
 	return output;
 };
 
@@ -1492,7 +1502,7 @@ var qLogFile =  function () {
 		var start = this.offsetForTime(startTime);
 		var stop = this.offsetForTime(endTime);
 
-		if(start != NaN && end != NaN) {
+		if(start != NaN && stop != NaN) {
 			if(this.data.hasOwnProperty(channel)) {
 				return this.data[channel].slice(start, stop);
 			}
@@ -1503,9 +1513,19 @@ var qLogFile =  function () {
 
 	};
 
-	this.saveFileAs = function(file) {
+	this.saveFileAs = function(file, filename) {
+		if(filename) {
+
+		}
+		else {
+			filename = "SelectedRegion.csv"
+		}
 		var b = new Blob([file], {type: "text/plain;charset=UTF-8"});
-		saveAs(b, that.filename);
+		var pom = document.createElement('a');
+		pom.setAttribute('href', 'data:attachment/csv;charset=utf-8,' + encodeURIComponent(file));
+		pom.setAttribute('download', filename);
+		pom.click();
+
 	};
 
 	this.savePDF = function() {
@@ -1520,6 +1540,33 @@ var qLogFile =  function () {
 
 			});
 		});
+
+	}
+
+	this.exportCropped = function(startTime, endTime, filename, callback) {
+
+
+		if (callback) {
+			that.callback = callback;
+		}
+		else {
+			if(filename) {
+				that.callback = function(file){that.saveFileAs(file, filename)};
+			}
+			else {
+				that.callback = that.saveFileAs(file, filename);
+			}
+		}
+
+
+		var data = Object.assign({}, that.data);
+		var metadata = Object.assign({}, that.metadata);
+		for (var i = that.channels.length - 1; i >= 0; i--) {
+			data[that.channels[i]] = this._getDataForTimeRange(that.channels[i], startTime, endTime);
+		}
+		metadata["Start Time"] = startTime;
+
+		that.worker.postMessage({cmd:"export", data:{data:data, metadata:metadata, useBlob: false} });
 
 	}
 
@@ -2720,7 +2767,9 @@ var Grapher = function(div, opts) {
 		var DONE_ID = "DONE_ID_" + parseInt(Math.random()*1000,10).toString();
 		var COMMENT_ID = "COMMENT_ID_" + parseInt(Math.random()*1000,10).toString();
 		var REMOVE_ID = "REMOVE_ID_" + parseInt(Math.random()*1000,10).toString();
-		var popoverContent = "<input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"CURRENT_COLOR\"  class=\"pick-a-color form-control\"><br /><button class='btn btn-danger pull-left' id='REMOVE_ID'>Delete</button><button class='btn btn-default pull-right' id='DONE_ID'>Save</button>".replace("DONE_ID",DONE_ID).replace("REMOVE_ID",REMOVE_ID).replace(/COMMENT_ID/g,COMMENT_ID).replace("CURRENT_COLOR",that.datasource.rangeMarkers[idx].color);
+		var EXPORT_ID = "EXPORT_ID_" + parseInt(Math.random()*1000,10).toString();
+
+		var popoverContent = "<input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"CURRENT_COLOR\"  class=\"pick-a-color form-control\"><br /><button class='btn btn-danger pull-left' id='REMOVE_ID'>Delete</button><button class='btn btn-info pull-right' id='EXPORT_ID'>Export</button><button class='btn btn-default pull-right' id='DONE_ID'>Save</button>".replace("DONE_ID",DONE_ID).replace("REMOVE_ID",REMOVE_ID).replace(/COMMENT_ID/g,COMMENT_ID).replace("CURRENT_COLOR",that.datasource.rangeMarkers[idx].color).replace("EXPORT_ID",EXPORT_ID);
 
 
 
@@ -2842,6 +2891,21 @@ var Grapher = function(div, opts) {
 			that.updateCache();
 			that.isEditing = false;
 		});	
+		$("button#"+EXPORT_ID).on("click", function() {
+			var xmin = d3.select(rect).attr("x")*1.0;
+			var xmax = d3.select(rect).attr("width")*1.0+xmin;
+			var start = that.datasource.timeForOffset( int( that.datasource.x( xmin ) ) );
+			var end = that.datasource.timeForOffset( int( that.datasource.x( xmax ) ) );
+			
+			var filename = that.datasource.filename + "_" + $("input#" + COMMENT_ID).val() + ".csv"
+			console.log("Exporting data from  " + start.toTimeString() + " to " + end.toTimeString() + " as " + filename)
+			
+			that.datasource.exportCropped(start, end, filename)
+			$(this).html("Exporting...").attr("disabled","disabled")
+			setTimeout(function(){ $("button#"+EXPORT_ID).html("Export").attr("disabled",null) }, 3000);
+
+		});	
+
 		try {
 			$("input#" + COMMENT_ID+"_COLOR").pickAColor();
 		}
@@ -3186,4 +3250,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:167}
+var version = {build:168}
