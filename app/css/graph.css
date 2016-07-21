@@ -163,6 +163,26 @@ yText {
 	fill: #B6E1F2;
 }
 
+path[class*="_I3"]{
+	stroke-width: 3;
+	fill: none;
+
+}
+
+path[class*="_I3"]:nth-of-type(1) {
+	stroke: rgb(23,180,183);
+}
+
+path[class*="_I3"]:nth-of-type(2) {
+	stroke: rgb(243,94,90);
+}
+
+path[class*="_I3"]:nth-of-type(3) {
+	stroke: #00BA38;
+}
+
+
+
 path.Estimated_HR {
 fill: #CC0000;
 stroke: #C40000;
@@ -195,14 +215,13 @@ path:only-of-type {
 	fill: #B6E1F2;
 }
 
-
 path:nth-of-type(2){
-	stroke: #00CC00;
+	stroke: #B79F00;
 	fill: none;
 }
 
 path:nth-of-type(3){
-	stroke: #0000CC;
+	stroke: #00BA38;
 	fill: none;
 }
 
