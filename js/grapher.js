@@ -1186,6 +1186,8 @@ var Grapher = function(div, opts) {
 		 //Clear all
 		 edaContainer.selectAll("g."+channel).remove();
 		 var ticks = x.ticks(w/150);
+		 console.log("X Ticks at: ");
+		 console.log(ticks);
 		 //Now, lets do the horizontal ticks
 		 var xrule = edaContainer.selectAll("g.x."+channel)
 		     .data(ticks)
@@ -1207,7 +1209,7 @@ var Grapher = function(div, opts) {
 			     .attr("y", that.h+10)
 			     .attr("dy", ".35em")
 			     .style("text-anchor", "middle")
-			 	 .text(function(d,i) {return that.datasource.timeForOffset(that.datasource.x(d)).shortString(showDay);});
+			 	 .text(function(d,i) {return that.datasource.timeForOffset(that.datasource.x(x(d))).shortString(showDay);});
 		 }
 		 
 		 //Now do the vertical lines and labels

@@ -64,13 +64,17 @@ gaussianKernel = function(width,resolution) {
 	return kernel;
 }
 
+/*
 String.prototype.autoconvert = function() {
 {
 		try {
 			return parseDate(this.toString());
 		}
 		catch (error) {
-			
+			d = Date.parse(this.toString());
+			if(d != NaN){
+				return d;
+			}
 		}
 		try {
 			var n =  parseFloat(this.toString());
@@ -87,7 +91,7 @@ String.prototype.autoconvert = function() {
 	}
 
 };
-
+*/
 
 gaussianFilter = function(values, width, resolution){
 	var result = new Array();

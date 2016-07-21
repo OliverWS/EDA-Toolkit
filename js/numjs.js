@@ -338,11 +338,25 @@ String.prototype.autoconvert = function() {
 			return parseDate(this.toString());
 		}
 		catch (error) {
-			
+
+		}
+		try {
+			if (this.toString().indexOf(":") > 0) {
+				var d = Date.parse(this.toString());
+				if(!isNaN(d)){
+					console.log("Parsed '" + this.toString() + "' to " + (new Date(d)).toString())
+					return new Date(d);
+				}
+
+			}
+
+		}
+		catch (error) {
+			console.log(error)
 		}
 		try {
 			var n =  parseFloat(this.toString());
-			if(n != NaN) {
+			if(!isNaN(n)) {
 				return n;
 			}
 			else {
