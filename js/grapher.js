@@ -14,6 +14,9 @@ var Grapher = function(div, opts) {
 	this.opts = opts || {};
 	this.channels = this.opts.channel || ["EDA"];
 	this.autoscale = this.opts.autoscale || true;
+	this.annotationType = this.opts.annotationType || "text";
+	this.annotationLabel = this.opts.annotationLabel || "Comment"
+	this.annotationPlaceholder = this.opts.annotationPlaceholder || "Comment";
 	that.headroom = this.opts.headroom || 0.2;
 	that.RANGE_MARKER_HEIGHT = this.opts.rangemarkerheight || 10.0;
 	that.showAcc = false;
@@ -713,7 +716,13 @@ var Grapher = function(div, opts) {
 			var ZOOM_ID = "ZOOM_ID_" + parseInt(Math.random()*1000,10).toString();
 			var ADD_RANGE_ID = "ADD_RANGE_ID_" + parseInt(Math.random()*1000,10).toString();
 			var COMMENT_ID = "COMMENT_ID_" + parseInt(Math.random()*1000,10).toString();
-			var popoverContent = "<input type=\"text\" class=\"form-control\" placeholder=\"Comment\" id=\"COMMENT_ID\"><br /><input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"4BAAA9\"  class=\"pick-a-color form-control\"><br /><div class=\"btn-group\"><button class='btn btn-default' id='ZOOM_ID'><i class='icon-zoom-in'></i> Zoom</button><button class='btn btn-primary' id='ADD_RANGE_ID'><i class='icon-map-marker'></i> Add Range Marker</button></div>".replace("ZOOM_ID",ZOOM_ID).replace("ADD_RANGE_ID",ADD_RANGE_ID).replace(/COMMENT_ID/g,COMMENT_ID);
+			var popoverContent = "<label for=\"COMMENT_ID\">POPOVER_INPUT_LABEL</label><input type=\"POPOVER_INPUT_TYPE\" class=\"form-control\" placeholder=\"POPOVER_INPUT_PLACEHOLDER\" id=\"COMMENT_ID\"><br /><input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"4BAAA9\"  class=\"pick-a-color form-control\"><br /><div class=\"btn-group\"><button class='btn btn-default' id='ZOOM_ID'><i class='icon-zoom-in'></i> Zoom</button><button class='btn btn-primary' id='ADD_RANGE_ID'><i class='icon-map-marker'></i> Add Range Marker</button></div>"
+				.replace("ZOOM_ID",ZOOM_ID)
+				.replace("ADD_RANGE_ID",ADD_RANGE_ID)
+				.replace("POPOVER_INPUT_LABEL",that.annotationLabel)
+				.replace("POPOVER_INPUT_TYPE",that.annotationType)
+				.replace("POPOVER_INPUT_PLACEHOLDER",that.annotationPlaceholder)
+				.replace(/COMMENT_ID/g,COMMENT_ID);
 			
 			$(that.graph).find("rect.zoomrect").popover({
 				html: true,
@@ -790,7 +799,12 @@ var Grapher = function(div, opts) {
 		var REMOVE_ID = "REMOVE_ID_" + parseInt(Math.random()*1000,10).toString();
 		var EXPORT_ID = "EXPORT_ID_" + parseInt(Math.random()*1000,10).toString();
 
-		var popoverContent = "<input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"CURRENT_COLOR\"  class=\"pick-a-color form-control\"><br /><button class='btn btn-danger pull-left' id='REMOVE_ID'>Delete</button><button class='btn btn-info pull-right' id='EXPORT_ID'>Export</button><button class='btn btn-default pull-right' id='DONE_ID'>Save</button>".replace("DONE_ID",DONE_ID).replace("REMOVE_ID",REMOVE_ID).replace(/COMMENT_ID/g,COMMENT_ID).replace("CURRENT_COLOR",that.datasource.rangeMarkers[idx].color).replace("EXPORT_ID",EXPORT_ID);
+		var popoverContent = "<input id=\"COMMENT_ID_COLOR\" type=\"text\" value=\"CURRENT_COLOR\"  class=\"pick-a-color form-control\"><br /><button class='btn btn-danger pull-left' id='REMOVE_ID'>Delete</button><button class='btn btn-info pull-right' id='EXPORT_ID'>Export</button><button class='btn btn-default pull-right' id='DONE_ID'>Save</button>"
+			.replace("DONE_ID",DONE_ID)
+			.replace("REMOVE_ID",REMOVE_ID)
+			.replace(/COMMENT_ID/g,COMMENT_ID)
+			.replace("CURRENT_COLOR",that.datasource.rangeMarkers[idx].color)
+			.replace("EXPORT_ID",EXPORT_ID);
 
 
 
@@ -803,7 +817,10 @@ var Grapher = function(div, opts) {
 		$(rect).attr("data-original-title",null);
 		$(rect).popover({
 			html: true,
-			title: '<input type="text" class="form-control" placeholder="Comment" id="COMMENT_ID">'.replace("COMMENT_ID",COMMENT_ID),
+			title: '<input type="POPOVER_INPUT_TYPE" class="form-control" placeholder="POPOVER_INPUT_PLACEHOLDER" id="COMMENT_ID">'
+				.replace("COMMENT_ID",COMMENT_ID)
+				.replace("POPOVER_INPUT_TYPE",that.annotationType)
+				.replace("POPOVER_INPUT_PLACEHOLDER",that.annotationPlaceholder),
 			container: 'body',
 			placement: window.isEmbed ? 'auto right' : 'top',
 			trigger: 'manual',
