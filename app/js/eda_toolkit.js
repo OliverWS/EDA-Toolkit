@@ -1372,6 +1372,20 @@ var qLogFile =  function () {
 		that.worker.postMessage({cmd:"filter", data:{"data":dat, "filterType": filterType, "width":that.sampleRate}});
 
 	};
+	this.fractionalOffsetForTime = function(time) {
+		var diff = time.sub(this.startTime);
+		if(diff.valueOf() >= 0 && diff.valueOf() < this.duration.valueOf()) {
+			return ( diff.valueOf()/(1000.0/this.sampleRate) );
+
+		}
+		else if (diff.valueOf() >= 0 && diff.valueOf() == this.duration.valueOf()) {
+			return this.data.length-1;
+		}
+		else {
+			throw "Illegal Time: " + time +". Time must be between " + this.startTime + " and " + this.endTime;
+		}
+
+	};
 
 	this.offsetForTime = function(time) {
 		var diff = time.sub(this.startTime);
@@ -3016,7 +3030,7 @@ var Grapher = function(div, opts) {
 	
 	this.updateCursor = function(time) {
 		//console.log(time);
-		var offset = that.datasource.offsetForTime(time);
+		var offset = that.datasource.fractionalOffsetForTime(time);
 		that.datasourceContainer.selectAll("line.cursor").remove();
 		
 		if (that.followCursor) {
@@ -3287,4 +3301,4 @@ var Grapher = function(div, opts) {
 
 
 
-var version = {build:176}
+var version = {build:177}
