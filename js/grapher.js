@@ -1019,7 +1019,7 @@ var Grapher = function(div, opts) {
 	
 	this.updateCursor = function(time) {
 		//console.log(time);
-		var offset = that.datasource.offsetForTime(time);
+		var offset = that.datasource.fractionalOffsetForTime(time);
 		that.datasourceContainer.selectAll("line.cursor").remove();
 		
 		if (that.followCursor) {

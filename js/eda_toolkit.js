@@ -191,6 +191,20 @@ var qLogFile =  function () {
 		that.worker.postMessage({cmd:"filter", data:{"data":dat, "filterType": filterType, "width":that.sampleRate}});
 
 	};
+	this.fractionalOffsetForTime = function(time) {
+		var diff = time.sub(this.startTime);
+		if(diff.valueOf() >= 0 && diff.valueOf() < this.duration.valueOf()) {
+			return ( diff.valueOf()/(1000.0/this.sampleRate) );
+
+		}
+		else if (diff.valueOf() >= 0 && diff.valueOf() == this.duration.valueOf()) {
+			return this.data.length-1;
+		}
+		else {
+			throw "Illegal Time: " + time +". Time must be between " + this.startTime + " and " + this.endTime;
+		}
+
+	};
 
 	this.offsetForTime = function(time) {
 		var diff = time.sub(this.startTime);
