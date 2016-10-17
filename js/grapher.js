@@ -705,8 +705,10 @@ var Grapher = function(div, opts) {
 	this.mouseup = function() {
 		$(that.graph).find("rect.zoomrect").tooltip("destroy");
 		that.datasourceContainer.on("mousemove", null);
-	
-		
+		if(!that.isEditing){
+			$(".popover").popover("destroy");
+		}
+
 		
 		var zoom_w = Math.abs(that.zoom_rect.p1[0] - that.zoom_rect.p2[0]);
 		var zoom_h = Math.abs(that.zoom_rect.p1[1] - that.zoom_rect.p2[1]);
@@ -735,19 +737,28 @@ var Grapher = function(div, opts) {
 			$(that.graph).find("rect.zoomrect").popover('show');
 			
 			$("button#"+ZOOM_ID).on("click", function() {
-				$(that.graph).find("rect.zoomrect").popover('destroy');
+				$(".popover").popover("destroy");
 				that.datasourceContainer.select("rect.zoomrect").remove();
 				that.zoom();
 			});
+
 			
 			$("button#"+ADD_RANGE_ID).on("click", function() {
-				$(that.graph).find("rect.zoomrect").popover('destroy');
+				$(".popover").popover("destroy");
 				that.datasourceContainer.select("rect.zoomrect").remove();
 				var comment = $("input#" + COMMENT_ID).val();
 				var color =  $("input#" + COMMENT_ID + "_COLOR").val();
 				that.addRangeMarker(start,end, comment,color);
 				
 			});
+			$(document).one("keydown",function(evt) {
+				console.log("Key pressed: " + evt.keyCode);
+			    if (evt.keyCode == 27) {
+					$(".popover").popover("destroy");
+					that.datasourceContainer.select("rect.zoomrect").remove();
+			    }
+			});
+
 			try {
 				$("input#"+COMMENT_ID+"_COLOR").pickAColor();
 			}
@@ -929,6 +940,19 @@ var Grapher = function(div, opts) {
 			that.updateCache();
 			that.isEditing = false;
 		});	
+		$(document).one("keydown",function(evt) {
+			console.log("Key pressed: " + evt.keyCode);
+		    if (evt.keyCode == 27) {
+			    $(rect).popover('destroy');
+				leftHandle.remove();
+				rightHandle.remove();
+				that.datasourceContainer.on("mousedown",that.mousedown,false);
+				that.renderRangeMarkers(that.datasourceContainer,that.x,that.y);
+				that.updateCache();
+				that.isEditing = false;
+		    }
+		});
+
 		$("button#"+EXPORT_ID).on("click", function() {
 			var xmin = d3.select(rect).attr("x")*1.0;
 			var xmax = d3.select(rect).attr("width")*1.0+xmin;
