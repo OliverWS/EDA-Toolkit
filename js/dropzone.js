@@ -34,26 +34,34 @@ var Dropzone = function(el,callback,opts) {
 		var h = $(label).height();
 		$(label).css("margin-top",((that.height- h)/2)).css("text-align","center").css("vertical-align","middle");
 	}
-	if ( !(Dropbox === undefined) ) {
-		var randomID = parseInt(Math.random()*10000).toString()
-		$(dropzone).find("h1").append('<br/><input type="dropbox-chooser" name="selected-file" id="db-chooser-' + randomID + '" data-link-type="direct" data-multiselect="true" data-extensions=".eda .csv .tsv .avi .webm .mov .mp4 .m4v" />')	
-		    document.getElementById("db-chooser-" + randomID).addEventListener("DbxChooserSuccess",
-		        function(e) {
-		        	console.log(e);
-		            var files = e.files;
-		            for (var i = 0; i < files.length; i++) {
-		            	var f = files[i];
-		            	that.callback(f,false,"link");			
-		            	
-		            }
-		            that.callback({},true);
-		            if(that.autoremove){
-		            	that.remove();
-		            }
-		            
-		        },false);
-				
+	try {
+		if ( !(Dropbox === undefined) ) {
+					var randomID = parseInt(Math.random()*10000).toString()
+					$(dropzone).find("h1").append('<br/><input type="dropbox-chooser" name="selected-file" id="db-chooser-' + randomID + '" data-link-type="direct" data-multiselect="true" data-extensions=".eda .csv .tsv .avi .webm .mov .mp4 .m4v" />')	
+					    document.getElementById("db-chooser-" + randomID).addEventListener("DbxChooserSuccess",
+					        function(e) {
+					        	console.log(e);
+					            var files = e.files;
+					            for (var i = 0; i < files.length; i++) {
+					            	var f = files[i];
+					            	that.callback(f,false,"link");			
+					            	
+					            }
+					            that.callback({},true);
+					            if(that.autoremove){
+					            	that.remove();
+					            }
+					            
+					        },false);
+							
+		}	
 	}
+	catch (e) {
+	   // statements to handle any exceptions
+	   console.log(e); // pass exception object to error handler
+	}
+		
+
 	var randomID_B = parseInt(Math.random()*10000).toString()
 		$(dropzone).find("h1").after('<br/><input type="file" name="files[]" id="' + randomID_B + '"  multiple />');
 			$("#"+randomID_B).css("display","inline-block")
