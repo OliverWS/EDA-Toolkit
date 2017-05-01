@@ -67,7 +67,8 @@ module.exports = function(grunt) {
               {expand: false, src: ['js/labeling_files.js'], dest: 'dist/'}, // includes files in path
               {expand: true, src: ['index.html'], dest: 'dist/'}, // includes files in path
               {expand: true, src: ['embed.html'], dest: 'dist/'}, // includes files in path
-              {expand: true, src: ['annotate.html'], dest: 'dist/'} // includes files in path
+              {expand: true, src: ['annotate.html'], dest: 'dist/'}, // includes files in path
+              {expand: true, src: ['annotation_viewer.html'], dest: 'dist/'} // includes files in path
             ]
           }
         }

@@ -17,6 +17,7 @@ var Grapher = function(div, opts) {
 	this.annotationType = this.opts.annotationType || "text";
 	this.annotationLabel = this.opts.annotationLabel || "Comment"
 	this.annotationPlaceholder = this.opts.annotationPlaceholder || "Comment";
+
 	that.headroom = this.opts.headroom || 0.2;
 	that.RANGE_MARKER_HEIGHT = this.opts.rangemarkerheight || 10.0;
 	that.showAcc = false;

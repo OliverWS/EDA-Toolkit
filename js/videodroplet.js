@@ -40,6 +40,7 @@ var VideoDroplet = function(id, callback, opts) {
 			  that.file = file;
 			  
 			  if(file.name.endsWith("." + that.extension) || (that.extension == false)){
+			  	$("#" + that.id).empty();
 			  	that.insertVideo(window.webkitURL.createObjectURL(file), file);
 			  	
 		      }

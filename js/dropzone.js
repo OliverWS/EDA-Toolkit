@@ -54,6 +54,28 @@ var Dropzone = function(el,callback,opts) {
 		        },false);
 				
 	}
+	var randomID_B = parseInt(Math.random()*10000).toString()
+		$(dropzone).find("h1").after('<br/><input type="file" name="files[]" id="' + randomID_B + '"  multiple />');
+			$("#"+randomID_B).css("display","inline-block")
+			.css("position","relative")
+			.css("left", "50%")
+			.css("margin-left", "-45px");
+
+		    document.getElementById(randomID_B).onchange = function(e) {
+		        	console.log(e);
+    				var files = e.target.files; // FileList object
+		            for (var i = 0; i < files.length; i++) {
+		            	var f = files[i];
+		            	that.callback(f);			
+		            	
+		            }
+		            that.callback({},true);
+		            if(that.autoremove){
+		            	that.remove();
+		            }
+		            
+		        };
+
 	dropzone.ondragover = function () { if(this.className.indexOf("hover") < 0){this.className += ' hover';} return false; };
 	dropzone.ondragend = function () { this.className.replace("hover", ""); return false; };
 	dropzone.ondrop = function(e) {	
@@ -135,6 +157,7 @@ var Dropzone = function(el,callback,opts) {
 	that.dropzone = dropzone;
 	that.remove = function() {
 		$(dropzone).find("h1").remove();
+		$(dropzone).find("input").remove();
 		dropzone.className = dropzone.className.replace("dropzone", "");
 		dropzone.className = dropzone.className.replace("stripes", "");
 		dropzone.ondragover = null;
