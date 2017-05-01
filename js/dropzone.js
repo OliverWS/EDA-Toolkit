@@ -34,7 +34,7 @@ var Dropzone = function(el,callback,opts) {
 		var h = $(label).height();
 		$(label).css("margin-top",((that.height- h)/2)).css("text-align","center").css("vertical-align","middle");
 	}
-	if ( (Dropbox === undefined) ) {
+	if ( !(Dropbox === undefined) ) {
 		var randomID = parseInt(Math.random()*10000).toString()
 		$(dropzone).find("h1").append('<br/><input type="dropbox-chooser" name="selected-file" id="db-chooser-' + randomID + '" data-link-type="direct" data-multiselect="true" data-extensions=".eda .csv .tsv .avi .webm .mov .mp4 .m4v" />')	
 		    document.getElementById("db-chooser-" + randomID).addEventListener("DbxChooserSuccess",
