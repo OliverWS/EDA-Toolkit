@@ -1,7 +1,6 @@
 /**
 * EDA Toolkit
 * Copyright 2016 Oliver Wilder-Smith 
-* http://www.apache.org/licenses/LICENSE-2.0
 */
 var e = Math.E;
 var pi = Math.PI;
@@ -1061,12 +1060,17 @@ self.parseDSVHeaders = function(metadata,del) {
 			headers["Start Time"]  = new Date( t1 );
 			//Now assert that the values are okay
 			if(isNaN(headers["Sampling Rate"])){
-				throw "Sample rate invalid: " + fs;
+				t1 = new Date(parseInt(rows[0][0]));
+				t2 = new Date(parseInt(rows[1][0]));
+				fs = 1000.0/(t2-t1);
+				if(isNaN(headers["Sampling Rate"])){
+					throw "Sample rate invalid: " + fs;
+				}
 			}
 			if(isNaN(headers["Start Time"])){
 				throw "Invalid Start Time: " + t1;
 			}
-			console.log("Successfully identified sample rate: " + fs + " and start time: " + headers["Start Time"].toString());
+			console.log("Successfully identified sample rate: " + fs  + " and start time: " + headers["Start Time"].toString());
 		}
 		catch (error) {
 			//Maybe it's a weird empatica file

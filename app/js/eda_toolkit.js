@@ -1,7 +1,6 @@
 /**
 * EDA Toolkit
 * Copyright 2016 Oliver Wilder-Smith 
-* http://www.apache.org/licenses/LICENSE-2.0
 */
 var e = Math.E;
 var pi = Math.PI;
