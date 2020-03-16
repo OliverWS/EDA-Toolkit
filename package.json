@@ -23,7 +23,7 @@
     "grunt": "*"
     , "grunt-contrib-clean":"*"
     , "grunt-contrib-connect": "*"
-    , "grunt-contrib-concat": "*"
+    , "grunt-contrib-concat": "~1.0"
     , "grunt-contrib-copy": "*"
     , "grunt-contrib-jshint": "*"
     , "grunt-contrib-uglify": "*"
