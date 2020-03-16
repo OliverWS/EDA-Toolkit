@@ -126,6 +126,9 @@ self.detectFormat = function(text) {
 self.parseDSVHeaders = function(metadata,del) {
 	colNames = metadata[0].replace(/\n/g,"").split(del);
 	var headers = {};
+	for (var i = colNames.length - 1; i >= 0; i--) {
+		colNames[i] = colNames.split(" ")[0].replace("(","").replace(")","");
+	}
 	headers["Column Names"] = colNames;
 	//now we have to infer sample rate based on some samples. Assume that time column is left-most
 	headers["headerLines"] = metadata[0] + LF;
