@@ -1063,6 +1063,7 @@ self.parseDSVHeaders = function(metadata,del) {
 				t1 = new Date(parseInt(rows[0][0]));
 				t2 = new Date(parseInt(rows[1][0]));
 				fs = 1000.0/(t2-t1);
+		        headers["Start Time"]  = new Date( parseInt(t1 ));
 				if(isNaN(headers["Sampling Rate"])){
 					throw "Sample rate invalid: " + fs;
 				}
