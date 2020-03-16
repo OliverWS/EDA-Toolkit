@@ -7,7 +7,6 @@ module.exports = function(grunt) {
         banner: '/**\n' +
                 '* EDA Toolkit\n' +
                 '* Copyright 2016 Oliver Wilder-Smith \n' +
-                '* <%= _.pluck(pkg.licenses, "url").join(", ") %>\n' +
                 '*/\n',
         jqueryCheck: 'if (!jQuery) { throw new Error(\"EDA Toolkit requires jQuery\") }\n\n',
         // Task configuration.
